@@ -37,6 +37,25 @@ test('calculateWeightedIncidents: ความรุนแรงที่ไม�
   assert.equal(calculateWeightedIncidents([{ severity: 'unknown', count: 9 }]), 0);
 });
 
+test('calculateWeightedIncidents: incidents ที่ไม่ใช่อาเรย์ ต้องได้ 0 ไม่พัง', () => {
+  assert.equal(calculateWeightedIncidents(null), 0);
+  assert.equal(calculateWeightedIncidents(undefined), 0);
+  assert.equal(calculateWeightedIncidents('ไม่ใช่อาเรย์'), 0);
+});
+
+test('calculateWeightedIncidents: count ที่หายไปหรือไม่ใช่ตัวเลข ต้องไม่ทำให้กลายเป็น NaN', () => {
+  // กรณีนี้เกิดได้จริง เพราะ riskPoints.json กรอกด้วยมือ อาจลืมใส่ count
+  assert.equal(calculateWeightedIncidents([{ severity: 'fatal' }]), 0);
+  assert.equal(calculateWeightedIncidents([{ severity: 'fatal', count: null }]), 0);
+
+  // จุดที่มีทั้งข้อมูลดีและข้อมูลเสีย ต้องนับเฉพาะข้อมูลดี ไม่ใช่พังทั้งจุด
+  const mixed = [
+    { severity: 'fatal', count: undefined },
+    { severity: 'minor', count: 3 },
+  ];
+  assert.equal(calculateWeightedIncidents(mixed), 3);
+});
+
 test('ตรงกับม็อกอัพ: เขาคอหงส์ ในเดือนและเวลาที่เสี่ยง ต้องได้ 43', () => {
   // (9 / 30) x 100 x 1.3 x 1.1 = 42.9 -> ปัดเป็น 43
   const score = calculateRiskScore(khaoKhoHong, { month: 8, hour: 18 });
@@ -89,6 +108,14 @@ test('getRiskLevel: 40-69 คือเสี่ยง สีส้ม', () => {
 test('getRiskLevel: 70-100 คืออันตรายมาก สีแดง', () => {
   assert.equal(getRiskLevel(70).id, 'critical');
   assert.equal(getRiskLevel(100).label, 'อันตรายมาก');
+});
+
+test('getRiskLevel: คะแนนนอกช่วงหรือ NaN ต้องไม่พัง และคืนระดับที่สมเหตุสมผล', () => {
+  // บรรทัด return level || RISK_LEVELS[0] ใน riskScore.js มีไว้กันกรณีพวกนี้
+  // ถ้าไม่มีเทสต์คุม อาจมีคนลบทิ้งเพราะคิดว่าไม่จำเป็น
+  assert.equal(getRiskLevel(NaN).id, 'watch');
+  assert.equal(getRiskLevel(-10).id, 'watch');
+  assert.equal(getRiskLevel(150).id, 'critical');
 });
 
 test('getRiskLevel: ต้องไม่มีระดับไหนเป็นสีเขียว', () => {

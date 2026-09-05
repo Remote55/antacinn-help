@@ -113,3 +113,14 @@ test('isInsideBoundingBox: จุดไกลมากต้องอยู่�
   const far = { lat: 8.5, lng: 102.0 };
   assert.equal(isInsideBoundingBox(far, center, 2000), false);
 });
+
+test('isInsideBoundingBox: ต้องอยู่ในกรอบทั้งสองแกน ใกล้แค่แกนเดียวไม่พอ', () => {
+  // เทสต์นี้มีไว้ดักกรณีเผลอเปลี่ยน && เป็น || ในโค้ด
+  // ถ้าเทสต์วัดแต่ "ใกล้ทั้งสองแกน" กับ "ไกลทั้งสองแกน" จะจับบั๊กนี้ไม่ได้เลย
+  const center = { lat: 7.0, lng: 100.5 };
+
+  // ละติจูดตรงกัน แต่ลองจิจูดไกลมาก
+  assert.equal(isInsideBoundingBox({ lat: 7.0, lng: 105.0 }, center, 2000), false);
+  // ลองจิจูดตรงกัน แต่ละติจูดไกลมาก
+  assert.equal(isInsideBoundingBox({ lat: 9.0, lng: 100.5 }, center, 2000), false);
+});

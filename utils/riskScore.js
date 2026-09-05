@@ -26,7 +26,14 @@ export function calculateWeightedIncidents(incidents) {
     const weight = SEVERITY_WEIGHTS[incident.severity];
     // ถ้าเจอความรุนแรงที่ไม่รู้จัก ให้ข้ามไป ดีกว่าทำให้คะแนนเพี้ยนทั้งจุด
     if (weight === undefined) return total;
-    return total + incident.count * weight;
+
+    // กัน count ที่หายไปหรือไม่ใช่ตัวเลข
+    // สำคัญเพราะไฟล์ riskPoints.json ถูกกรอกด้วยมือ ถ้าใครลืมใส่ count
+    // แล้วปล่อยให้เป็น undefined * weight = NaN คะแนนทั้งจุดจะกลายเป็น NaN
+    // แล้วหลุดไปแสดงบนหน้าจอว่า "NaN" ซึ่งผู้ใช้อ่านไม่รู้เรื่อง
+    const count = Number.isFinite(incident.count) ? incident.count : 0;
+
+    return total + count * weight;
   }, 0);
 }
 
