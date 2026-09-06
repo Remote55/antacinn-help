@@ -75,6 +75,15 @@ export default function AppMap({
 
   const [loadError, setLoadError] = useState(null);
 
+  // ต้องเก็บ "แผนที่พร้อมแล้วหรือยัง" ไว้ใน state ไม่ใช่แค่ใน ref
+  //
+  // เหตุผล: Leaflet โหลดจาก CDN แบบ async กว่าแผนที่จะถูกสร้างเสร็จ
+  // effect ที่วาดหมุดได้ทำงานไปแล้วรอบหนึ่งและออกไปตั้งแต่ต้นเพราะ mapRef ยังว่าง
+  // การกำหนดค่าให้ ref ไม่ทำให้ React วาดใหม่ effect วาดหมุดจึงไม่ถูกเรียกอีกเลย
+  // ผลคือได้แผนที่เปล่า ๆ ที่ไม่มีหมุดสักอัน โดยไม่มี error ให้เห็น
+  // การใช้ state ทำให้เกิดการวาดใหม่ แล้ว effect ทุกตัวที่พึ่งแผนที่จะได้ทำงาน
+  const [isMapReady, setIsMapReady] = useState(false);
+
   // สร้างแผนที่ครั้งเดียวตอน component ถูกสร้าง
   useEffect(() => {
     let isCancelled = false;
@@ -96,6 +105,9 @@ export default function AppMap({
         // ใช้ layerGroup เพื่อล้างหมุดเก่าทั้งชุดได้ในคำสั่งเดียว
         markerLayerRef.current = L.layerGroup().addTo(map);
         mapRef.current = map;
+
+        // บอก React ว่าแผนที่พร้อมแล้ว เพื่อให้ effect ที่วาดหมุดและเส้นทางได้ทำงาน
+        setIsMapReady(true);
       })
       .catch((error) => {
         if (!isCancelled) setLoadError(error.message);
@@ -119,7 +131,7 @@ export default function AppMap({
       [region.latitude, region.longitude],
       deltaToZoom(region.latitudeDelta)
     );
-  }, [region.latitude, region.longitude, region.latitudeDelta]);
+  }, [isMapReady, region.latitude, region.longitude, region.latitudeDelta]);
 
   // วาดหมุดใหม่ทุกครั้งที่รายการหมุดเปลี่ยน
   useEffect(() => {
@@ -140,7 +152,7 @@ export default function AppMap({
         .on('click', () => onMarkerPress && onMarkerPress(marker.id))
         .addTo(markerLayerRef.current);
     });
-  }, [markers, onMarkerPress]);
+  }, [isMapReady, markers, onMarkerPress]);
 
   // วาดเส้นทางใหม่เมื่อเส้นทางเปลี่ยน
   useEffect(() => {
@@ -158,7 +170,7 @@ export default function AppMap({
         { color: COLORS.primary, weight: 4 }
       ).addTo(mapRef.current);
     }
-  }, [polyline]);
+  }, [isMapReady, polyline]);
 
   // จุดสีฟ้าแสดงตำแหน่งผู้ใช้
   useEffect(() => {
@@ -179,7 +191,7 @@ export default function AppMap({
         fillOpacity: 1,
       }).addTo(mapRef.current);
     }
-  }, [userLocation]);
+  }, [isMapReady, userLocation]);
 
   // ถ้าโหลด Leaflet ไม่ได้ (เช่น CDN ถูกบล็อก) ต้องบอกผู้ใช้ ไม่ใช่แสดงกล่องว่างเปล่า
   if (loadError) {

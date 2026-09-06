@@ -2,7 +2,7 @@
   "name": "antacinn-help",
   "version": "1.0.0",
   "description": "แอปแผนที่เตือนจุดเสี่ยงสำหรับนักท่องเที่ยว หาดใหญ่-เมืองสงขลา",
-  "main": "App.js",
+  "main": "expo/AppEntry.js",
   "scripts": {
     "test": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/*.test.js\""
   },
