@@ -12,6 +12,29 @@ import * as Location from 'expo-location';
 import { DISTANCE } from '../constants/config';
 
 /**
+ * ยกเลิกการติดตามตำแหน่งโดยไม่ให้แอปพัง
+ *
+ * ทำไมต้องมีฟังก์ชันนี้:
+ * expo-location 19.0.8 บนเว็บมีบั๊ก ตอนยกเลิกการติดตามจะเรียก
+ * LocationEventEmitter.removeSubscription ซึ่งไม่มีอยู่จริงบนเว็บ แล้ว throw error
+ * error นั้นเกิดตอน React กำลังถอดหน้าจอ ทำให้ทั้งแอปจอขาวทันทีที่ออกจากโหมดเดินทาง
+ *
+ * ดัก error นี้ได้อย่างปลอดภัย เพราะไลบรารียกเลิก watch ของเบราว์เซอร์ไปแล้ว
+ * ก่อนถึงบรรทัดที่ throw (ดู node_modules/expo-location/build/LocationSubscribers.js)
+ * GPS จึงหยุดทำงานจริง ไม่มีการกินแบตค้าง
+ */
+function removeSubscriptionSafely(subscription) {
+  try {
+    subscription.remove();
+  } catch (error) {
+    // บั๊กที่รู้จักแล้วข้างต้น ไม่ต้องทำอะไร ส่วน error อื่นยังแจ้งไว้เพื่อให้เห็นตอนพัฒนา
+    if (!String(error && error.message).includes('removeSubscription')) {
+      console.warn('ยกเลิกการติดตามตำแหน่งไม่สำเร็จ:', error.message);
+    }
+  }
+}
+
+/**
  * @param options.watch ถ้าเป็น true จะติดตามตำแหน่งต่อเนื่อง ถ้า false จะดึงครั้งเดียว
  */
 export function useUserLocation({ watch = false } = {}) {
@@ -93,7 +116,7 @@ export function useUserLocation({ watch = false } = {}) {
         );
 
         if (isCancelled) {
-          subscription.remove();
+          removeSubscriptionSafely(subscription);
         } else {
           subscriptionRef.current = subscription;
         }
@@ -112,7 +135,7 @@ export function useUserLocation({ watch = false } = {}) {
     return () => {
       isCancelled = true;
       if (subscriptionRef.current) {
-        subscriptionRef.current.remove();
+        removeSubscriptionSafely(subscriptionRef.current);
         subscriptionRef.current = null;
       }
     };
