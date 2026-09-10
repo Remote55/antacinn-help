@@ -9,6 +9,7 @@
 import { useMemo } from 'react';
 import baseRiskPoints from '../data/riskPoints.json';
 import { calculateRiskScore, getRiskLevel } from '../utils/riskScore';
+import { searchPoints as rankSearchResults } from '../utils/search';
 import { useSavedPoints } from './useSavedPoints';
 
 /**
@@ -51,17 +52,9 @@ export function useRiskPoints(options = {}) {
     return [...allPoints].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
   }, [allPoints]);
 
-  /** ค้นหาตามชื่อ ใช้กับช่องค้นหาในหน้าแรก */
+  /** ค้นหาตามชื่อ ประเภทอันตราย และอำเภอ เรียงตามความเกี่ยวข้อง (ตรรกะอยู่ใน utils/search.js) */
   const searchPoints = useMemo(() => {
-    return (keyword) => {
-      const trimmed = (keyword || '').trim().toLowerCase();
-      if (!trimmed) return [];
-      return allPoints.filter(
-        (point) =>
-          point.name.toLowerCase().includes(trimmed) ||
-          point.district.toLowerCase().includes(trimmed)
-      );
-    };
+    return (keyword) => rankSearchResults(allPoints, keyword);
   }, [allPoints]);
 
   /** หาจุดเดียวตาม id ใช้ตอนเปิดหน้ารายละเอียด */
