@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: SPACING.sm,
   },
   sectionTitle: {
     fontSize: FONT_SIZES.title,
@@ -136,6 +137,8 @@ const styles = StyleSheet.create({
   link: {
     fontSize: FONT_SIZES.body,
     color: COLORS.primary,
+    // ห้ามลิงก์หดตัว ให้หัวข้อทางซ้ายเป็นฝ่ายขึ้นบรรทัดใหม่แทน
+    flexShrink: 0,
   },
   emptyText: {
     fontSize: FONT_SIZES.body,
