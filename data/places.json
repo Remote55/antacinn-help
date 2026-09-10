@@ -1,0 +1,20 @@
+[
+  { "id": "place-psu", "name": "ม.อ.หาดใหญ่", "emoji": "🎓", "district": "หาดใหญ่", "coordinate": { "lat": 7.00966, "lng": 100.49596 } },
+  { "id": "place-kimyong", "name": "ตลาดกิมหยง", "emoji": "🛍️", "district": "หาดใหญ่", "coordinate": { "lat": 7.00844, "lng": 100.46999 } },
+  { "id": "place-leegardens", "name": "ลีการ์เดนส์ พลาซ่า", "emoji": "🏙️", "district": "หาดใหญ่", "coordinate": { "lat": 7.00585, "lng": 100.4717 } },
+  { "id": "place-hatyai-station", "name": "สถานีรถไฟชุมทางหาดใหญ่", "emoji": "🚆", "district": "หาดใหญ่", "coordinate": { "lat": 7.00394, "lng": 100.46758 } },
+  { "id": "place-hatyai-bus", "name": "สถานีขนส่งหาดใหญ่", "emoji": "🚌", "district": "หาดใหญ่", "coordinate": { "lat": 6.9947, "lng": 100.48198 } },
+  { "id": "place-hatyai-airport", "name": "ท่าอากาศยานนานาชาติหาดใหญ่", "emoji": "✈️", "district": "หาดใหญ่", "coordinate": { "lat": 6.9364, "lng": 100.39399 } },
+  { "id": "place-central-hatyai", "name": "เซ็นทรัลเฟสติวัล หาดใหญ่", "emoji": "🛒", "district": "หาดใหญ่", "coordinate": { "lat": 6.99191, "lng": 100.48282 } },
+  { "id": "place-hatyai-park", "name": "สวนสาธารณะเทศบาลนครหาดใหญ่", "emoji": "🌳", "district": "หาดใหญ่", "coordinate": { "lat": 7.04241, "lng": 100.51195 } },
+  { "id": "place-khlonghae", "name": "ตลาดน้ำคลองแห", "emoji": "🛶", "district": "หาดใหญ่", "coordinate": { "lat": 7.04618, "lng": 100.47382 } },
+  { "id": "place-wat-hatyai-nai", "name": "วัดหาดใหญ่ใน (พระนอน)", "emoji": "🙏", "district": "หาดใหญ่", "coordinate": { "lat": 7.00364, "lng": 100.4536 } },
+  { "id": "place-tonngachang", "name": "น้ำตกโตนงาช้าง", "emoji": "💦", "district": "หาดใหญ่", "coordinate": { "lat": 6.94664, "lng": 100.23193 } },
+  { "id": "place-samila", "name": "หาดสมิหลา (รูปปั้นนางเงือก)", "emoji": "🏖️", "district": "เมืองสงขลา", "coordinate": { "lat": 7.21549, "lng": 100.59581 } },
+  { "id": "place-chalatat", "name": "หาดชลาทัศน์", "emoji": "🌊", "district": "เมืองสงขลา", "coordinate": { "lat": 7.1941, "lng": 100.60922 } },
+  { "id": "place-khao-tang-kuan", "name": "เขาตังกวน", "emoji": "⛰️", "district": "เมืองสงขลา", "coordinate": { "lat": 7.2108, "lng": 100.58923 } },
+  { "id": "place-songkhla-oldtown", "name": "ย่านเมืองเก่าสงขลา", "emoji": "🏮", "district": "เมืองสงขลา", "coordinate": { "lat": 7.19536, "lng": 100.58987 } },
+  { "id": "place-songkhla-aquarium", "name": "สงขลาอะควาเรียม", "emoji": "🐠", "district": "เมืองสงขลา", "coordinate": { "lat": 7.22492, "lng": 100.58004 } },
+  { "id": "place-songkhla-zoo", "name": "สวนสัตว์สงขลา", "emoji": "🐘", "district": "เมืองสงขลา", "coordinate": { "lat": 7.1416, "lng": 100.60594 } },
+  { "id": "place-koyo-institute", "name": "สถาบันทักษิณคดีศึกษา เกาะยอ", "emoji": "🏛️", "district": "เมืองสงขลา", "coordinate": { "lat": 7.18073, "lng": 100.5427 } }
+]

@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateRiskPoints, validatePresetRoutes } from '../utils/dataValidation.js';
+import { validateRiskPoints, validatePresetRoutes, validatePlaces } from '../utils/dataValidation.js';
 
 /** จุดเสี่ยงที่ถูกต้องทุกฟิลด์ ใช้เป็นฐานแล้วค่อยแก้ทีละฟิลด์ให้ผิด */
 function validPoint(overrides = {}) {
@@ -142,4 +142,38 @@ test('เส้นทางสำรองที่ไม่ได้จบท�
     validRoute({ fallbackCoordinates: [{ lat: 7.0, lng: 100.47 }, { lat: 7.1, lng: 100.47 }] }),
   ]);
   assertHasError(errors, 'ห่างปลายทาง');
+});
+
+/** สถานที่ที่ถูกต้องทุกฟิลด์ ใช้เป็นฐานแล้วค่อยแก้ทีละฟิลด์ให้ผิด */
+function validPlace(overrides = {}) {
+  return {
+    id: 'place-test',
+    name: 'สถานที่ทดสอบ',
+    emoji: '📍',
+    district: 'หาดใหญ่',
+    coordinate: { lat: 7.0, lng: 100.47 },
+    ...overrides,
+  };
+}
+
+test('สถานที่: ถูกต้องทุกฟิลด์ ต้องไม่มีปัญหาเลย', () => {
+  assert.deepEqual(validatePlaces([validPlace()]), []);
+});
+
+test('สถานที่: id ซ้ำ หรือไม่ขึ้นต้นด้วย place- ต้องถูกจับได้', () => {
+  assertHasError(validatePlaces([validPlace(), validPlace()]), 'id ซ้ำ');
+  assertHasError(validatePlaces([validPlace({ id: 'hy-test' })]), 'place-');
+});
+
+test('สถานที่: ไม่มีชื่อ หรือไม่มี emoji ต้องถูกจับได้', () => {
+  assertHasError(validatePlaces([validPlace({ name: '  ' })]), 'ไม่มีชื่อ');
+  assertHasError(validatePlaces([validPlace({ emoji: '' })]), 'emoji');
+});
+
+test('สถานที่: อำเภอนอกพื้นที่ของแอป ต้องถูกจับได้', () => {
+  assertHasError(validatePlaces([validPlace({ district: 'สะเดา' })]), 'district');
+});
+
+test('สถานที่: สลับ lat กับ lng ต้องถูกจับได้', () => {
+  assertHasError(validatePlaces([validPlace({ coordinate: { lat: 100.47, lng: 7.0 } })]), 'นอกพื้นที่');
 });

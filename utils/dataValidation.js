@@ -1,5 +1,5 @@
 /**
- * ตรวจความถูกต้องของไฟล์ข้อมูล data/riskPoints.json และ data/presetRoutes.json
+ * ตรวจความถูกต้องของไฟล์ข้อมูลในโฟลเดอร์ data/ (จุดเสี่ยง เส้นทางสำเร็จรูป สถานที่)
  *
  * ทำไมต้องมี:
  * ไฟล์ข้อมูลกรอกด้วยมือ และทีมจะกรอกเพิ่มเรื่อย ๆ หลังลงพื้นที่
@@ -146,6 +146,45 @@ export function validatePresetRoutes(routes) {
     const last = fallback[fallback.length - 1];
     if (isInServiceArea(route.destination) && haversineMeters(last, route.destination) > 1000) {
       problem('จุดสุดท้ายของ fallbackCoordinates ห่างปลายทางเกิน 1 กม.');
+    }
+  });
+
+  return errors;
+}
+
+/** คำนำหน้า id ของสถานที่ แยกจากจุดเสี่ยงให้เห็นชัดว่าเป็นคนละชุดข้อมูล */
+const PLACE_ID_PREFIX = 'place-';
+const KNOWN_DISTRICTS = Object.values(DISTRICT_PREFIXES);
+
+/**
+ * ตรวจสถานที่ยอดนิยม (data/places.json)
+ * @returns อาเรย์ข้อความปัญหา ถ้าถูกต้องทั้งหมดจะได้อาเรย์ว่าง
+ */
+export function validatePlaces(places) {
+  if (!Array.isArray(places)) return ['ข้อมูลสถานที่ต้องเป็นอาเรย์'];
+
+  const errors = [];
+  const seenIds = new Set();
+
+  places.forEach((place, index) => {
+    const label = place && place.id ? place.id : `ลำดับที่ ${index + 1}`;
+    const problem = (message) => errors.push(`${label}: ${message}`);
+
+    if (!place || typeof place.id !== 'string' || place.id === '') {
+      problem('ไม่มี id');
+      return;
+    }
+    if (!place.id.startsWith(PLACE_ID_PREFIX)) problem(`id ต้องขึ้นต้นด้วย ${PLACE_ID_PREFIX}`);
+    if (seenIds.has(place.id)) problem('id ซ้ำกับสถานที่อื่น');
+    seenIds.add(place.id);
+
+    if (typeof place.name !== 'string' || place.name.trim() === '') problem('ไม่มีชื่อ');
+    if (typeof place.emoji !== 'string' || place.emoji.trim() === '') problem('ไม่มี emoji');
+    if (!KNOWN_DISTRICTS.includes(place.district)) {
+      problem(`district ต้องเป็น ${KNOWN_DISTRICTS.join(' / ')}`);
+    }
+    if (!isInServiceArea(place.coordinate)) {
+      problem('พิกัดอยู่นอกพื้นที่ให้บริการ (ตรวจว่าสลับ lat กับ lng หรือพิมพ์ผิดหรือไม่)');
     }
   });
 
