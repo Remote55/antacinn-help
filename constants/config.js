@@ -149,6 +149,7 @@ export const DEFAULT_REGION = {
 /** คีย์ที่ใช้เก็บข้อมูลใน AsyncStorage */
 export const STORAGE_KEYS = {
   SAVED_POINTS: '@antacinn/saved_points',
+  FAVORITES: '@antacinn/favorites',
 };
 
 /** ข้อความปฏิเสธความรับผิดชอบ (ตามเอกสารข้อ 7.4) */

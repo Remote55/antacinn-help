@@ -7,12 +7,14 @@
  * แท็บ "แผนที่" ที่เปิดค้างไว้จะไม่เห็นจุดนั้นจนกว่าจะปิดแอปแล้วเปิดใหม่
  *
  * วิธีแก้: เก็บข้อมูลไว้ใน React Context ที่ครอบทั้งแอป หน้าจอไหนแก้ ทุกหน้าจอเห็นทันที
+ * ใช้กับทั้งจุดที่บันทึกเองและรายการโปรด
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/config';
 import { buildUserPoint } from '../utils/userPoint';
+import { toggleFavoriteId } from '../utils/favorites';
 
 const AppDataContext = createContext(null);
 
@@ -22,6 +24,9 @@ export function AppDataProvider({ children }) {
 
   // เก็บค่าล่าสุดไว้ใน ref ด้วย เพื่อให้การเพิ่มหรือลบติดกันเร็ว ๆ ไม่ทำงานบนข้อมูลเก่า
   const savedPointsRef = useRef([]);
+
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const favoriteIdsRef = useRef([]);
 
   /** อ่านข้อมูลจากเครื่องขึ้นมาใส่ state */
   const reloadSavedPoints = useCallback(async () => {
@@ -40,10 +45,39 @@ export function AppDataProvider({ children }) {
     }
   }, []);
 
+  /** อ่านรายการโปรดจากเครื่อง */
+  const reloadFavorites = useCallback(async () => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITES);
+      const ids = raw ? JSON.parse(raw) : [];
+      favoriteIdsRef.current = Array.isArray(ids) ? ids : [];
+      setFavoriteIds(favoriteIdsRef.current);
+    } catch (error) {
+      console.warn('อ่านรายการโปรดไม่สำเร็จ:', error.message);
+    }
+  }, []);
+
   // โหลดครั้งเดียวตอนเปิดแอป
   useEffect(() => {
     reloadSavedPoints();
-  }, [reloadSavedPoints]);
+    reloadFavorites();
+  }, [reloadSavedPoints, reloadFavorites]);
+
+  /** อัปเดตรายการโปรดทุกหน้าจอทันที แล้วค่อยเขียนลงเครื่อง */
+  const persistFavorites = useCallback(async (ids) => {
+    favoriteIdsRef.current = ids;
+    setFavoriteIds(ids);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(ids));
+    } catch (error) {
+      console.warn('บันทึกรายการโปรดไม่สำเร็จ:', error.message);
+    }
+  }, []);
+
+  const toggleFavorite = useCallback(
+    (id) => persistFavorites(toggleFavoriteId(favoriteIdsRef.current, id)),
+    [persistFavorites]
+  );
 
   /** อัปเดตทุกหน้าจอทันที แล้วค่อยเขียนลงเครื่อง */
   const persistSavedPoints = useCallback(async (points) => {
@@ -68,13 +102,25 @@ export function AppDataProvider({ children }) {
   const removePoint = useCallback(
     async (id) => {
       await persistSavedPoints(savedPointsRef.current.filter((p) => p.id !== id));
+      // จุดที่ลบไปแล้วต้องไม่ค้างอยู่ในรายการโปรด
+      if (favoriteIdsRef.current.includes(id)) {
+        await persistFavorites(favoriteIdsRef.current.filter((favoriteId) => favoriteId !== id));
+      }
     },
-    [persistSavedPoints]
+    [persistSavedPoints, persistFavorites]
   );
 
   const value = useMemo(
-    () => ({ savedPoints, isSavedPointsLoading, addPoint, removePoint, reloadSavedPoints }),
-    [savedPoints, isSavedPointsLoading, addPoint, removePoint, reloadSavedPoints]
+    () => ({
+      savedPoints,
+      isSavedPointsLoading,
+      addPoint,
+      removePoint,
+      reloadSavedPoints,
+      favoriteIds,
+      toggleFavorite,
+    }),
+    [savedPoints, isSavedPointsLoading, addPoint, removePoint, reloadSavedPoints, favoriteIds, toggleFavorite]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
