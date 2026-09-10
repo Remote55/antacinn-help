@@ -50,7 +50,9 @@ export default function RoutePlannerScreen({ navigation }) {
 
   // หาจุดเสี่ยงบนเส้นทาง เรียงตามลำดับที่จะขับผ่าน
   const pointsOnRoute = routeResult
-    ? findRiskPointsAlongRoute(routeResult.coordinates, allPoints, DISTANCE.ON_ROUTE_THRESHOLD)
+    ? findRiskPointsAlongRoute(routeResult.coordinates, allPoints, DISTANCE.ON_ROUTE_THRESHOLD, {
+        destinationRadiusM: DISTANCE.DESTINATION_RADIUS,
+      })
     : [];
 
   // คะแนนความปลอดภัยรวมของเส้นทาง ตามที่เอกสารบทที่ 4 กำหนดให้หน้านี้ต้องแสดง
