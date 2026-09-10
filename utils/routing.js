@@ -61,17 +61,21 @@ export async function fetchRouteFromOsrm(origin, destination) {
 }
 
 /**
- * ขอเส้นทาง โดยพยายามใช้ OSRM ก่อน ถ้าไม่ได้ค่อยใช้เส้นทางสำรองในเครื่อง
+ * ขอเส้นทาง โดยพยายามใช้ OSRM ก่อน ถ้าไม่ได้ค่อยใช้ของสำรอง
  *
  * นี่คือฟังก์ชันที่หน้าจอควรเรียกใช้ ไม่ใช่ fetchRouteFromOsrm โดยตรง
  * เพราะฟังก์ชันนี้รับประกันว่าจะได้เส้นทางเสมอ ไม่มีทาง throw
  *
- * @param presetRoute รายการจาก data/presetRoutes.json ที่มี fallbackCoordinates
- * @returns { coordinates, distanceM, durationS, source: 'osrm' | 'offline' }
+ * @param routeRequest { origin, destination, fallbackCoordinates? }
+ *   ได้จาก data/presetRoutes.json โดยตรง หรือจาก buildRouteRequest ใน utils/routeRequest.js
+ * @returns { coordinates, distanceM, durationS, source }
+ *   source = 'osrm'     เส้นทางจริงบนถนน จากอินเทอร์เน็ต
+ *          | 'offline'  เส้นทางสำรองที่เก็บไว้ในเครื่อง (ถนนจริงแบบลดรายละเอียด)
+ *          | 'straight' เส้นตรงระหว่างต้นทางกับปลายทาง ไม่ใช่ถนนจริง
+ *                       ใช้เมื่อไม่มีอินเทอร์เน็ตและเส้นทางนี้ไม่มีข้อมูลสำรอง
  */
-export async function getRouteWithFallback(presetRoute) {
-  const origin = presetRoute.origin;
-  const destination = presetRoute.destination;
+export async function getRouteWithFallback(routeRequest) {
+  const { origin, destination, fallbackCoordinates } = routeRequest;
 
   try {
     return await fetchRouteFromOsrm(origin, destination);
@@ -79,9 +83,15 @@ export async function getRouteWithFallback(presetRoute) {
     // ไม่ throw ต่อ เพราะแอปต้องใช้งานได้แม้ไม่มีอินเทอร์เน็ต (ตามเอกสารบทที่ 6.2)
     console.warn('ดึงเส้นทางจาก OSRM ไม่สำเร็จ ใช้เส้นทางสำรองแทน:', error.message);
 
-    const coordinates = presetRoute.fallbackCoordinates || [origin, destination];
+    // ของสำรองไม่มีข้อมูลระยะทาง/เวลาจริง ส่ง null ไปให้หน้าจอตัดสินใจว่าจะซ่อนหรือแสดงอะไร
+    if (Array.isArray(fallbackCoordinates) && fallbackCoordinates.length >= 2) {
+      return makeRouteResult(fallbackCoordinates, null, null, 'offline');
+    }
 
-    // เส้นทางสำรองไม่มีข้อมูลระยะทาง/เวลาจริง ส่ง null ไปให้หน้าจอตัดสินใจว่าจะซ่อนหรือแสดงอะไร
-    return makeRouteResult(coordinates, null, null, 'offline');
+    const straightLine = [
+      { lat: origin.lat, lng: origin.lng },
+      { lat: destination.lat, lng: destination.lng },
+    ];
+    return makeRouteResult(straightLine, null, null, 'straight');
   }
 }
