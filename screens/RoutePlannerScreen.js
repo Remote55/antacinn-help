@@ -75,6 +75,16 @@ export default function RoutePlannerScreen({ navigation }) {
     longitudeDelta: Math.abs(selectedRoute.origin.lng - selectedRoute.destination.lng) * 2 + 0.05,
   };
 
+  /** ส่งเส้นทางไปให้โหมดเดินทาง เพื่อให้รู้ว่าผู้ใช้อยู่ตรงไหนของเส้นทาง */
+  function startTrip(mode) {
+    if (!routeResult) return;
+    navigation.navigate('TripMode', {
+      mode,
+      routeCoordinates: routeResult.coordinates,
+      routeLabel: selectedRoute.label,
+    });
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       {/* ชิปเลือกเส้นทาง */}
@@ -148,12 +158,23 @@ export default function RoutePlannerScreen({ navigation }) {
               />
             ))}
 
-            <Pressable
-              style={styles.startButton}
-              onPress={() => navigation.navigate('TripMode')}
-            >
-              <Text style={styles.startButtonText}>เริ่มโหมดเดินทาง</Text>
-            </Pressable>
+            <View style={styles.startRow}>
+              {/* โหมดจำลอง: สาธิตการเตือนได้โดยไม่ต้องขับรถจริง (แก้ปัญหาในเอกสารบทที่ 7.3) */}
+              <Pressable
+                style={[styles.startButton, !routeResult && styles.startButtonDisabled]}
+                disabled={!routeResult}
+                onPress={() => startTrip('simulate')}
+              >
+                <Text style={styles.startButtonText}>▶ จำลองการเดินทาง</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.startButton, styles.gpsButton, !routeResult && styles.startButtonDisabled]}
+                disabled={!routeResult}
+                onPress={() => startTrip('gps')}
+              >
+                <Text style={styles.startButtonText}>📍 เริ่มจริงด้วย GPS</Text>
+              </Pressable>
+            </View>
           </>
         )}
       </ScrollView>
@@ -235,12 +256,21 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     marginBottom: SPACING.md,
   },
+  startRow: {
+    gap: SPACING.sm,
+    marginTop: SPACING.md,
+  },
   startButton: {
     backgroundColor: COLORS.primary,
     padding: SPACING.md,
     borderRadius: RADIUS.md,
     alignItems: 'center',
-    marginTop: SPACING.md,
+  },
+  gpsButton: {
+    backgroundColor: COLORS.primaryDark,
+  },
+  startButtonDisabled: {
+    opacity: 0.5,
   },
   startButtonText: {
     color: COLORS.white,
