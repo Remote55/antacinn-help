@@ -6,15 +6,17 @@
  */
 
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RiskBadge from '../components/RiskBadge';
+import VerificationBadge from '../components/VerificationBadge';
 import Disclaimer from '../components/Disclaimer';
 import EmergencyButton from '../components/EmergencyButton';
 import { useRiskPoints } from '../hooks/useRiskPoints';
+import { useFavorites } from '../hooks/useFavorites';
 import { summarizeIncidents } from '../utils/format';
 import { SEVERITY_LABELS, HAZARD_TYPES } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
+import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
 const THAI_MONTHS_SHORT = [
   'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
@@ -41,6 +43,7 @@ function describeHours(peakHours) {
 export default function RiskDetailScreen({ route }) {
   const { pointId } = route.params;
   const { findPointById } = useRiskPoints();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const point = findPointById(pointId);
 
   // กันกรณีหาจุดไม่เจอ เช่น ผู้ใช้ลบจุดที่บันทึกเองไปแล้วแต่ยังเปิดหน้านี้ค้างอยู่
@@ -55,6 +58,7 @@ export default function RiskDetailScreen({ route }) {
   }
 
   const hazard = HAZARD_TYPES.find((h) => h.id === point.type) || { icon: '📍', label: 'ไม่ระบุ' };
+  const favorite = isFavorite(point.id);
 
   return (
     <SafeAreaView style={styles.screen} edges={['bottom']}>
@@ -68,10 +72,23 @@ export default function RiskDetailScreen({ route }) {
 
         <View style={styles.badgeRow}>
           <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} size="large" />
+          <VerificationBadge verified={point.verified} />
         </View>
 
-        {/* จุดที่ยังไม่ยืนยันแหล่งที่มา ต้องเตือนก่อนที่ผู้ใช้จะอ่านสถิติ */}
-        {!point.verified && <Disclaimer variant="unverified" />}
+        {/* รายการโปรด (เอกสารตาราง 6.1) กดซ้ำเพื่อเอาออก */}
+        <Pressable
+          style={[styles.favoriteButton, favorite && styles.favoriteButtonActive]}
+          onPress={() => toggleFavorite(point.id)}
+          accessibilityRole="button"
+          accessibilityLabel={favorite ? 'เอาออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด'}
+        >
+          <Text style={[styles.favoriteText, favorite && styles.favoriteTextActive]}>
+            {favorite ? '★ อยู่ในรายการโปรดแล้ว' : '☆ บันทึกเป็นรายการโปรด'}
+          </Text>
+        </Pressable>
+
+        {/* บอกก่อนที่ผู้ใช้จะอ่านสถิติ ว่าข้อมูลจุดนี้เชื่อถือได้แค่ไหน */}
+        <Disclaimer variant={point.verified ? 'verified' : 'unverified'} />
 
         <Text style={styles.sectionTitle}>สถิติย้อนหลัง</Text>
         <Text style={styles.summary}>{summarizeIncidents(point.incidents)}</Text>
@@ -143,7 +160,31 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: SPACING.sm,
     marginVertical: SPACING.md,
+  },
+  favoriteButton: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.sm,
+  },
+  favoriteButtonActive: {
+    backgroundColor: COLORS.primary,
+  },
+  favoriteText: {
+    fontSize: FONT_SIZES.body,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  favoriteTextActive: {
+    color: COLORS.white,
   },
   sectionTitle: {
     fontSize: FONT_SIZES.title,

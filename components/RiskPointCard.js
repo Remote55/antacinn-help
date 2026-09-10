@@ -7,6 +7,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import RiskBadge from './RiskBadge';
+import VerificationBadge from './VerificationBadge';
 import { HAZARD_TYPES } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
@@ -37,8 +38,8 @@ export default function RiskPointCard({ point, distanceLabel, onPress }) {
 
       <View style={styles.footer}>
         <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} />
-        {/* จุดที่ยังไม่ยืนยันแหล่งที่มา ต้องบอกให้ชัด ไม่ให้เข้าใจผิดว่าเป็นสถิติทางการ */}
-        {!point.verified && <Text style={styles.unverified}>⚠️ ยังไม่ยืนยัน</Text>}
+        {/* บอกทุกจุดว่ายืนยันจากเอกสารทางการแล้วหรือยัง ไม่ให้เข้าใจผิดว่าเป็นสถิติทางการ */}
+        <VerificationBadge verified={point.verified} />
       </View>
     </Pressable>
   );
@@ -84,9 +85,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
     marginTop: SPACING.xs,
-  },
-  unverified: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.textMuted,
   },
 });
