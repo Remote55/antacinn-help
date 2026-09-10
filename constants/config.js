@@ -92,10 +92,10 @@ export const RISK_LEVELS = [
 
 /** ประเภทอันตราย ใช้ทั้งในตัวกรองและในฟอร์มบันทึกจุด */
 export const HAZARD_TYPES = [
-  { id: 'drowning', label: 'จมน้ำ',       icon: '🌊' },
-  { id: 'crash',    label: 'อุบัติเหตุรถ', icon: '🚗' },
-  { id: 'fall',     label: 'ลื่น/ตก',      icon: '⛰️' },
-  { id: 'crime',    label: 'อาชญากรรม',   icon: '👤' },
+  { id: 'drowning', label: 'จมน้ำ',       icon: '🌊', spokenAdvice: 'อย่าลงเล่นน้ำเมื่อคลื่นแรง' },
+  { id: 'crash',    label: 'อุบัติเหตุรถ', icon: '🚗', spokenAdvice: 'ลดความเร็ว' },
+  { id: 'fall',     label: 'ลื่น/ตก',      icon: '⛰️', spokenAdvice: 'ระวังลื่น' },
+  { id: 'crime',    label: 'อาชญากรรม',   icon: '👤', spokenAdvice: 'ระวังทรัพย์สิน' },
 ];
 
 /** หมวดของจุดเสี่ยง */
