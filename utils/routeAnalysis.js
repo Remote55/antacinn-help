@@ -12,7 +12,8 @@
  * ไฟล์นี้เป็นคณิตศาสตร์บริสุทธิ์ — ห้าม import react
  */
 
-import { haversineMeters, projectOnSegment, clamp } from './geo.js';
+import { haversineMeters, clamp } from './geo.js';
+import { locateOnRoute } from './routeProgress.js';
 
 /**
  * ความยาวรวมของเส้นทาง หน่วยเมตร
@@ -46,56 +47,24 @@ export function findRiskPointsAlongRoute(routeCoordinates, riskPoints, threshold
   const { destinationRadiusM = 0 } = options;
   const destination = routeCoordinates[routeCoordinates.length - 1];
 
-  // คำนวณความยาวและระยะทางสะสมของแต่ละ segment ไว้ล่วงหน้า
-  // cumulativeDistances[i] = ระยะทางจากต้นทาง มาถึง routeCoordinates[i]
-  const segmentLengths = [];
-  const cumulativeDistances = [0];
-  for (let i = 0; i < routeCoordinates.length - 1; i++) {
-    const segmentLength = haversineMeters(routeCoordinates[i], routeCoordinates[i + 1]);
-    segmentLengths.push(segmentLength);
-    cumulativeDistances.push(cumulativeDistances[i] + segmentLength);
-  }
-
   const matches = [];
 
   for (const point of riskPoints) {
-    let closestDistance = Infinity;
-    let closestSegmentIndex = -1;
-    let closestT = 0;
-
-    // หาว่าจุดนี้ใกล้ segment ไหนมากที่สุด และเกาะอยู่ตรงไหนของ segment นั้น
-    for (let i = 0; i < routeCoordinates.length - 1; i++) {
-      const projection = projectOnSegment(
-        point.coordinate,
-        routeCoordinates[i],
-        routeCoordinates[i + 1]
-      );
-      if (projection.distanceM < closestDistance) {
-        closestDistance = projection.distanceM;
-        closestSegmentIndex = i;
-        closestT = projection.t;
-      }
-    }
+    // ฉายจุดเสี่ยงลงเส้นทาง ได้ทั้งระยะห่างจากถนนและระยะสะสมจากต้นทาง
+    // (คณิตศาสตร์อยู่ใน routeProgress.js ใช้ร่วมกับการหาตำแหน่งผู้ใช้ในโหมดเดินทาง)
+    const { alongM, offRouteM } = locateOnRoute(routeCoordinates, point.coordinate);
 
     // ไกลเกินเกณฑ์ = ไม่ถือว่าอยู่บนเส้นทางนี้ ยกเว้นอยู่ใกล้ปลายทาง
-    const isNearRoute = closestDistance <= thresholdMeters;
+    const isNearRoute = offRouteM <= thresholdMeters;
     const isNearDestination =
       destinationRadiusM > 0 && haversineMeters(point.coordinate, destination) <= destinationRadiusM;
     if (!isNearRoute && !isNearDestination) continue;
 
-    // ระยะทางสะสมถึงต้น segment บวกด้วยระยะที่เดินเข้าไปใน segment นั้น (t x ความยาว segment)
-    //
-    // การบวก t x ความยาว สำคัญมาก ถ้าใช้แค่ระยะสะสมถึงต้น segment เฉย ๆ
-    // จุดที่อยู่ปลาย segment จะได้ค่าเท่ากับจุดที่อยู่ต้น segment เดียวกัน ซึ่งผิด
-    // และจุดที่ตกอยู่บนรอยต่อพอดีจะได้ค่าต่างกันไปเลย ขึ้นกับว่าลูปเจอ segment ไหนก่อน
-    const distanceAlongRoute =
-      cumulativeDistances[closestSegmentIndex] + closestT * segmentLengths[closestSegmentIndex];
-
     matches.push({
       point,
-      distanceFromRouteM: Math.round(closestDistance),
+      distanceFromRouteM: Math.round(offRouteM),
       // ค่านี้ใช้ทั้งเรียงลำดับ และใช้บอกผู้ใช้ว่า "อีกกี่กิโลเมตรข้างหน้า"
-      distanceAlongRouteM: Math.round(distanceAlongRoute),
+      distanceAlongRouteM: Math.round(alongM),
     });
   }
 
