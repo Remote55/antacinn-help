@@ -152,6 +152,9 @@ export default function AppMap({
         .on('click', () => onMarkerPress && onMarkerPress(marker.id))
         .addTo(markerLayerRef.current);
     });
+
+    // หมุดที่เพิ่งวาดใหม่จะทับจุดตำแหน่งผู้ใช้ ดึงจุดผู้ใช้ขึ้นมาบนสุดเสมอ
+    if (userMarkerRef.current) userMarkerRef.current.bringToFront();
   }, [isMapReady, markers, onMarkerPress]);
 
   // วาดเส้นทางใหม่เมื่อเส้นทางเปลี่ยน
@@ -187,7 +190,7 @@ export default function AppMap({
         radius: 7,
         color: COLORS.white,
         weight: 3,
-        fillColor: '#1E88E5',
+        fillColor: COLORS.userLocation,
         fillOpacity: 1,
       }).addTo(mapRef.current);
     }

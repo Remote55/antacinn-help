@@ -25,7 +25,6 @@ export default function AppMap({
       style={[styles.map, style]}
       provider={PROVIDER_DEFAULT}
       region={region}
-      showsUserLocation={Boolean(userLocation)}
       showsMyLocationButton={false}
       toolbarEnabled={false}
     >
@@ -49,6 +48,22 @@ export default function AppMap({
           <View style={[styles.pin, { backgroundColor: marker.color }]} />
         </Marker>
       ))}
+
+      {/*
+        วาดจุดตำแหน่งผู้ใช้เอง ไม่ใช้ showsUserLocation ของ MapView
+        เพราะ showsUserLocation แสดงตำแหน่ง GPS จริงของเครื่องเสมอ
+        ในโหมดจำลองการเดินทาง จุดบนแผนที่จะค้างอยู่ที่ห้องเรียนแทนที่จะวิ่งตามเส้นทาง
+      */}
+      {userLocation && (
+        <Marker
+          coordinate={{ latitude: userLocation.lat, longitude: userLocation.lng }}
+          anchor={{ x: 0.5, y: 0.5 }}
+          title="ตำแหน่งของคุณ"
+          zIndex={1000}
+        >
+          <View style={styles.userDot} />
+        </Marker>
+      )}
     </MapView>
   );
 }
@@ -63,5 +78,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: COLORS.white,
+  },
+  userDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 3,
+    borderColor: COLORS.white,
+    backgroundColor: COLORS.userLocation,
   },
 });
