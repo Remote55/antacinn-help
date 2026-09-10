@@ -9,6 +9,7 @@ import {
   distanceToSegmentMeters,
   projectOnSegment,
   isInsideBoundingBox,
+  isInServiceArea,
 } from '../utils/geo.js';
 
 /** ช่วยเช็คว่าตัวเลขใกล้เคียงกับที่คาดไว้ ภายในค่าคลาดเคลื่อนที่ยอมรับได้ */
@@ -123,4 +124,19 @@ test('isInsideBoundingBox: ต้องอยู่ในกรอบทั้�
   assert.equal(isInsideBoundingBox({ lat: 7.0, lng: 105.0 }, center, 2000), false);
   // ลองจิจูดตรงกัน แต่ละติจูดไกลมาก
   assert.equal(isInsideBoundingBox({ lat: 9.0, lng: 100.5 }, center, 2000), false);
+});
+
+test('isInServiceArea: หาดใหญ่และสงขลาอยู่ในพื้นที่ กรุงเทพฯ ไม่อยู่', () => {
+  assert.equal(isInServiceArea({ lat: 7.0086, lng: 100.498 }), true); // ม.อ.หาดใหญ่
+  assert.equal(isInServiceArea({ lat: 7.21549, lng: 100.59581 }), true); // หาดสมิหลา
+  assert.equal(isInServiceArea({ lat: 13.7563, lng: 100.5018 }), false); // กรุงเทพฯ
+});
+
+test('isInServiceArea: สลับ lat กับ lng ต้องหลุดกรอบ', () => {
+  assert.equal(isInServiceArea({ lat: 100.498, lng: 7.0086 }), false);
+});
+
+test('isInServiceArea: ไม่มีพิกัดหรือพิกัดไม่ใช่ตัวเลข คืน false ไม่พัง', () => {
+  assert.equal(isInServiceArea(null), false);
+  assert.equal(isInServiceArea({ lat: '7.0', lng: 100.5 }), false);
 });

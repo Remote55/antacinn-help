@@ -7,6 +7,8 @@
  * รูปแบบพิกัดที่ใช้ทั้งไฟล์: { lat: number, lng: number }
  */
 
+import { SERVICE_AREA } from '../constants/config.js';
+
 /** รัศมีของโลกเป็นเมตร (ตามเอกสารบทที่ 5.1) */
 const EARTH_RADIUS_M = 6371000;
 
@@ -128,5 +130,23 @@ export function isInsideBoundingBox(point, center, radiusMeters) {
   return (
     Math.abs(point.lat - center.lat) <= latitudeDelta &&
     Math.abs(point.lng - center.lng) <= longitudeDelta
+  );
+}
+
+/**
+ * พิกัดอยู่ในพื้นที่ให้บริการของแอปหรือไม่
+ *
+ * แอปมีข้อมูลจุดเสี่ยงเฉพาะหาดใหญ่–สงขลา ตำแหน่งนอกกรอบนี้วางแผนเส้นทางไปก็ไม่ได้ประโยชน์
+ * คืน false ถ้าไม่มีพิกัด หรือพิกัดไม่ใช่ตัวเลข (เช่น พิมพ์ผิดในไฟล์ข้อมูล)
+ */
+export function isInServiceArea(coordinate, area = SERVICE_AREA) {
+  return Boolean(
+    coordinate &&
+      Number.isFinite(coordinate.lat) &&
+      Number.isFinite(coordinate.lng) &&
+      coordinate.lat >= area.minLat &&
+      coordinate.lat <= area.maxLat &&
+      coordinate.lng >= area.minLng &&
+      coordinate.lng <= area.maxLng
   );
 }

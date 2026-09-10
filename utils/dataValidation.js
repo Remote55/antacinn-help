@@ -10,7 +10,7 @@
  */
 
 import { HAZARD_TYPES, CATEGORIES, SEVERITY_WEIGHTS } from '../constants/config.js';
-import { haversineMeters } from './geo.js';
+import { haversineMeters, isInServiceArea } from './geo.js';
 
 /** คำนำหน้า id ของแต่ละอำเภอ คำนำหน้าต้องตรงกับฟิลด์ district เสมอ */
 export const DISTRICT_PREFIXES = {
@@ -18,13 +18,6 @@ export const DISTRICT_PREFIXES = {
   'sk-': 'เมืองสงขลา',
   'sn-': 'สิงหนคร',
 };
-
-/**
- * กรอบพื้นที่ให้บริการของแอป
- * กว้างพอให้ครอบน้ำตกโตนงาช้าง (ทิศตะวันตก) และสะพานติณสูลานนท์ (ทิศเหนือ)
- * ถ้ามีจุดหลุดกรอบนี้ แปลว่าพิมพ์พิกัดผิด เช่น สลับ lat กับ lng
- */
-export const SERVICE_AREA = { minLat: 6.85, maxLat: 7.3, minLng: 100.15, maxLng: 100.7 };
 
 /** คำที่บอกว่าแหล่งอ้างอิงเป็นหน่วยงานทางการ ใช้ตรวจจุดที่ตั้ง verified: true */
 const OFFICIAL_SOURCE_KEYWORDS = ['กระทรวง', 'กรม', 'สำนักงาน', 'data.go.th', 'datagov', 'ThaiRSC', 'สภ.', 'ศปถ'];
@@ -35,18 +28,6 @@ const PLACEHOLDER_TEXT = 'รอกรอกข้อมูลจริง';
 const HAZARD_TYPE_IDS = HAZARD_TYPES.map((t) => t.id);
 const CATEGORY_IDS = Object.values(CATEGORIES);
 const SEVERITY_KEYS = Object.keys(SEVERITY_WEIGHTS);
-
-function isInServiceArea(coordinate) {
-  return Boolean(
-    coordinate &&
-      Number.isFinite(coordinate.lat) &&
-      Number.isFinite(coordinate.lng) &&
-      coordinate.lat >= SERVICE_AREA.minLat &&
-      coordinate.lat <= SERVICE_AREA.maxLat &&
-      coordinate.lng >= SERVICE_AREA.minLng &&
-      coordinate.lng <= SERVICE_AREA.maxLng
-  );
-}
 
 function isIntegerBetween(value, min, max) {
   return Number.isInteger(value) && value >= min && value <= max;
