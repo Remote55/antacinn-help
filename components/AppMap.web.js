@@ -9,7 +9,9 @@
  * จะได้ DOM element จริง ๆ ออกมา ทำให้ Leaflet เข้ามาควบคุมได้
  * (ทดสอบยืนยันแล้วเมื่อ 2026-09-05 ว่าใช้ได้จริง)
  *
- * ห้ามแก้ props ของไฟล์นี้โดยไม่แก้ AppMap.native.js ให้ตรงกัน
+ * props (ต้องเหมือนกันทั้งสองไฟล์ ห้ามแก้ไฟล์เดียว):
+ *   region, markers, polyline, userLocation, highlight, onMarkerPress, style
+ *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -64,6 +66,7 @@ export default function AppMap({
   markers = [],
   polyline = null,
   userLocation = null,
+  highlight = null,
   onMarkerPress,
   style,
 }) {
@@ -72,6 +75,7 @@ export default function AppMap({
   const markerLayerRef = useRef(null);
   const polylineRef = useRef(null);
   const userMarkerRef = useRef(null);
+  const highlightRef = useRef(null);
 
   const [loadError, setLoadError] = useState(null);
 
@@ -195,6 +199,29 @@ export default function AppMap({
       }).addTo(mapRef.current);
     }
   }, [isMapReady, userLocation]);
+
+  // หมุดสถานที่ที่ผู้ใช้เลือกดู (กด "ดูบนแผนที่" จากการ์ดสถานที่) แสดงชื่อค้างไว้ให้เห็นทันที
+  useEffect(() => {
+    const L = typeof window !== 'undefined' ? window.L : null;
+    if (!L || !mapRef.current) return;
+
+    if (highlightRef.current) {
+      highlightRef.current.remove();
+      highlightRef.current = null;
+    }
+
+    if (highlight) {
+      highlightRef.current = L.circleMarker([highlight.lat, highlight.lng], {
+        radius: 11,
+        color: COLORS.primary,
+        weight: 4,
+        fillColor: COLORS.white,
+        fillOpacity: 1,
+      })
+        .bindTooltip(highlight.label || '', { permanent: true, direction: 'top', offset: [0, -10] })
+        .addTo(mapRef.current);
+    }
+  }, [isMapReady, highlight]);
 
   // ถ้าโหลด Leaflet ไม่ได้ (เช่น CDN ถูกบล็อก) ต้องบอกผู้ใช้ ไม่ใช่แสดงกล่องว่างเปล่า
   if (loadError) {

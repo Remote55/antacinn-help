@@ -4,7 +4,9 @@
  * ไฟล์นี้จะถูกใช้อัตโนมัติเมื่อรันบน Expo Go
  * เวลารันบนเว็บ Metro จะข้ามไฟล์นี้ไปใช้ AppMap.web.js แทน
  *
- * ห้ามแก้ props ของไฟล์นี้โดยไม่แก้ AppMap.web.js ให้ตรงกัน
+ * props (ต้องเหมือนกันทั้งสองไฟล์ ห้ามแก้ไฟล์เดียว):
+ *   region, markers, polyline, userLocation, highlight, onMarkerPress, style
+ *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
  */
 
 import React from 'react';
@@ -17,6 +19,7 @@ export default function AppMap({
   markers = [],
   polyline = null,
   userLocation = null,
+  highlight = null,
   onMarkerPress,
   style,
 }) {
@@ -49,6 +52,18 @@ export default function AppMap({
         </Marker>
       ))}
 
+      {/* หมุดสถานที่ที่ผู้ใช้เลือกดู กดแล้วขึ้นชื่อสถานที่ */}
+      {highlight && (
+        <Marker
+          coordinate={{ latitude: highlight.lat, longitude: highlight.lng }}
+          anchor={{ x: 0.5, y: 0.5 }}
+          title={highlight.label}
+          zIndex={900}
+        >
+          <View style={styles.highlight} />
+        </Marker>
+      )}
+
       {/*
         วาดจุดตำแหน่งผู้ใช้เอง ไม่ใช้ showsUserLocation ของ MapView
         เพราะ showsUserLocation แสดงตำแหน่ง GPS จริงของเครื่องเสมอ
@@ -78,6 +93,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: COLORS.white,
+  },
+  highlight: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 5,
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
   },
   userDot: {
     width: 18,
