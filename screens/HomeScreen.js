@@ -14,25 +14,15 @@ import ScreenHeader from '../components/ScreenHeader';
 import RiskPointCard from '../components/RiskPointCard';
 import Disclaimer from '../components/Disclaimer';
 import { useRiskPoints } from '../hooks/useRiskPoints';
+import { summarizeSeason } from '../utils/season';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
-
-/** ชื่อเดือนภาษาไทย ใช้แสดงในแถบสรุป (index 0 = มกราคม) */
-const THAI_MONTHS = [
-  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
-];
 
 export default function HomeScreen({ navigation }) {
   const [keyword, setKeyword] = useState('');
   const { allPoints, topRiskPoints, searchPoints } = useRiskPoints();
 
-  const currentMonth = new Date().getMonth() + 1; // 1-12
-  const monthName = THAI_MONTHS[currentMonth - 1];
-
-  // นับว่ามีกี่จุดที่เดือนนี้เป็นเดือนเสี่ยงสูง
-  const pointsPeakingThisMonth = allPoints.filter((point) =>
-    (point.peakMonths || []).includes(currentMonth)
-  );
+  // หัวข้อและเนื้อความของแถบฤดูกาลมาจากข้อมูลชุดเดียวกัน (utils/season.js) จึงไม่ขัดกัน
+  const season = summarizeSeason(allPoints, new Date().getMonth() + 1);
 
   const searchResults = searchPoints(keyword);
   const isSearching = keyword.trim().length > 0;
@@ -75,12 +65,8 @@ export default function HomeScreen({ navigation }) {
           <>
             {/* แถบสรุปความเสี่ยงประจำเดือน ปรับข้อความตามข้อมูลจริง */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>ช่วง{monthName}นี้ต้องระวังเป็นพิเศษ</Text>
-              <Text style={styles.seasonText}>
-                {pointsPeakingThisMonth.length > 0
-                  ? `มี ${pointsPeakingThisMonth.length} จุดที่อยู่ในช่วงเสี่ยงสูงของปี ควรเพิ่มความระมัดระวัง`
-                  : 'เดือนนี้ไม่มีจุดใดที่อยู่ในช่วงเสี่ยงสูงเป็นพิเศษ แต่ยังควรระวังตามปกติ'}
-              </Text>
+              <Text style={styles.sectionTitle}>{season.title}</Text>
+              <Text style={styles.seasonText}>{season.body}</Text>
             </View>
 
             <View style={styles.section}>
