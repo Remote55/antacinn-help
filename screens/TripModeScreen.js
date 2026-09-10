@@ -168,6 +168,12 @@ export default function TripModeScreen({ navigation, route }) {
         <Text style={styles.noteText}>เครื่องนี้ไม่มีเสียงภาษาไทย แอปจะเตือนด้วยภาพและการสั่นแทน</Text>
       )}
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      {/* ใช้ GPS ไม่ได้แต่มีเส้นทางอยู่แล้ว เสนอให้ดูการเตือนแบบจำลองแทน */}
+      {errorMessage && routeCoordinates && (
+        <Pressable style={styles.fallbackButton} onPress={() => navigation.setParams({ mode: 'simulate' })}>
+          <Text style={styles.fallbackButtonText}>▶ ใช้โหมดจำลองการเดินทางแทน</Text>
+        </Pressable>
+      )}
       {!location && !errorMessage && <Text style={styles.noteText}>กำลังรอสัญญาณ GPS...</Text>}
 
       {currentAlert && liveDistanceM !== null && (
@@ -271,6 +277,19 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.body,
     color: COLORS.danger,
     padding: SPACING.md,
+  },
+  fallbackButton: {
+    marginHorizontal: SPACING.md,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  fallbackButtonText: {
+    fontSize: FONT_SIZES.body,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   mapContainer: {
     flex: 1,
