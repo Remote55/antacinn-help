@@ -18,6 +18,18 @@ const VIBRATION_PATTERN = [0, 400, 200, 400];
 /** ความเร็วการพูด ช้ากว่าปกตินิดหน่อยให้ฟังทันขณะขับรถ (1 = ปกติ) */
 const SPEECH_RATE = 0.95;
 
+/**
+ * สั่นได้ไหม
+ * บนเว็บ Chrome ไม่ยอมให้สั่นจนกว่าผู้ใช้จะแตะหน้าเว็บอย่างน้อยหนึ่งครั้ง
+ * ถ้าเรียกก่อนหน้านั้น Chrome จะบันทึก error ไว้ใน console (เจอตอนทดสอบอัตโนมัติที่ไม่มีการแตะจริง)
+ * ปกติผู้ใช้แตะปุ่มเริ่มเดินทางมาแล้ว จึงสั่นได้ตามปกติ
+ */
+function canVibrate() {
+  if (Platform.OS !== 'web') return true;
+  const activation = typeof navigator !== 'undefined' ? navigator.userActivation : null;
+  return !activation || activation.hasBeenActive;
+}
+
 /** ตรวจว่าเครื่องนี้มีเสียงภาษาไทยไหม */
 async function detectThaiVoice() {
   let voices = await Speech.getAvailableVoicesAsync();
@@ -73,7 +85,7 @@ export function useVoiceAlerts() {
    *   กฎนี้ทำให้การเตือนเข้าใกล้ไม่มีวันถูกตัดกลางประโยคโดยการบอกล่วงหน้า
    */
   const announce = useCallback((text, { interrupt = false } = {}) => {
-    if (interrupt) {
+    if (interrupt && canVibrate()) {
       try {
         Vibration.vibrate(VIBRATION_PATTERN);
       } catch (error) {

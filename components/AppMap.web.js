@@ -10,7 +10,8 @@
  * (ทดสอบยืนยันแล้วเมื่อ 2026-09-05 ว่าใช้ได้จริง)
  *
  * props (ต้องเหมือนกันทั้งสองไฟล์ ห้ามแก้ไฟล์เดียว):
- *   region, markers, polyline, userLocation, highlight, onMarkerPress, style
+ *   region, markers, polyline, fitToPolyline, userLocation, highlight, onMarkerPress, style
+ *   fitToPolyline = true ซูมให้เห็นเส้นทางทั้งเส้นทุกครั้งที่เส้นทางเปลี่ยน (ใช้ในหน้าวางแผนเส้นทาง)
  *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
  */
 
@@ -65,6 +66,7 @@ export default function AppMap({
   region,
   markers = [],
   polyline = null,
+  fitToPolyline = false,
   userLocation = null,
   highlight = null,
   onMarkerPress,
@@ -176,8 +178,14 @@ export default function AppMap({
         polyline.map((c) => [c.lat, c.lng]),
         { color: COLORS.primary, weight: 4 }
       ).addTo(mapRef.current);
+
+      // ระดับซูมจาก region เป็นค่าประมาณ เส้นทางยาวอาจล้นกรอบแผนที่ จึงซูมตามขอบเขตของเส้นทางจริง
+      // animate: false ให้กระโดดไปที่ภาพสุดท้ายทันที ภาพเคลื่อนไหวของ Leaflet ค้างได้ถ้าแท็บเบราว์เซอร์ถูกซ่อน
+      if (fitToPolyline) {
+        mapRef.current.fitBounds(polylineRef.current.getBounds(), { padding: [24, 24], animate: false });
+      }
     }
-  }, [isMapReady, polyline]);
+  }, [isMapReady, polyline, fitToPolyline]);
 
   // จุดสีฟ้าแสดงตำแหน่งผู้ใช้
   useEffect(() => {

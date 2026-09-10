@@ -121,8 +121,13 @@ export default function RoutePlannerScreen({ navigation, route }) {
 
   function selectPlace(place) {
     const endpoint = placeToEndpoint(place);
-    if (pickerTarget === 'origin') setOrigin(endpoint);
-    else setDestination(endpoint);
+    if (pickerTarget === 'origin') {
+      setOrigin(endpoint);
+      // ผู้ใช้เลือกสถานที่เป็นต้นทางแล้ว ข้อความ "หาตำแหน่งไม่ได้" ก่อนหน้านี้ไม่เกี่ยวแล้ว
+      setLocationNote(null);
+    } else {
+      setDestination(endpoint);
+    }
     setPickerTarget(null);
   }
 
@@ -235,6 +240,7 @@ export default function RoutePlannerScreen({ navigation, route }) {
               region={regionFor(origin, destination)}
               markers={markers}
               polyline={routeResult ? routeResult.coordinates : null}
+              fitToPolyline
             />
           </View>
 

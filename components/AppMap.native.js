@@ -5,29 +5,49 @@
  * เวลารันบนเว็บ Metro จะข้ามไฟล์นี้ไปใช้ AppMap.web.js แทน
  *
  * props (ต้องเหมือนกันทั้งสองไฟล์ ห้ามแก้ไฟล์เดียว):
- *   region, markers, polyline, userLocation, highlight, onMarkerPress, style
+ *   region, markers, polyline, fitToPolyline, userLocation, highlight, onMarkerPress, style
+ *   fitToPolyline = true ซูมให้เห็นเส้นทางทั้งเส้นทุกครั้งที่เส้นทางเปลี่ยน (ใช้ในหน้าวางแผนเส้นทาง)
  *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { COLORS } from '../constants/theme';
+
+/** เว้นขอบรอบเส้นทางตอนซูมให้เห็นทั้งเส้น หน่วยเป็นจุดบนจอ */
+const FIT_PADDING = { top: 40, right: 40, bottom: 40, left: 40 };
 
 export default function AppMap({
   region,
   markers = [],
   polyline = null,
+  fitToPolyline = false,
   userLocation = null,
   highlight = null,
   onMarkerPress,
   style,
 }) {
+  const mapRef = useRef(null);
+  // สั่งซูมก่อนแผนที่พร้อมจะไม่มีผล (โดยเฉพาะ Android) จึงรอ onMapReady ก่อน
+  const [isMapReady, setIsMapReady] = useState(false);
+
+  // ระดับซูมจาก region เป็นค่าประมาณ เส้นทางยาวอาจล้นกรอบแผนที่ จึงซูมตามเส้นทางจริง
+  useEffect(() => {
+    if (!fitToPolyline || !isMapReady || !mapRef.current || !polyline || polyline.length < 2) return;
+    mapRef.current.fitToCoordinates(
+      polyline.map((c) => ({ latitude: c.lat, longitude: c.lng })),
+      { edgePadding: FIT_PADDING, animated: true }
+    );
+  }, [fitToPolyline, isMapReady, polyline]);
+
   return (
     <MapView
+      ref={mapRef}
       style={[styles.map, style]}
       provider={PROVIDER_DEFAULT}
       region={region}
+      onMapReady={() => setIsMapReady(true)}
       showsMyLocationButton={false}
       toolbarEnabled={false}
     >
