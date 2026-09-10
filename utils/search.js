@@ -19,19 +19,19 @@ import { HAZARD_TYPES } from '../constants/config.js';
  * ทำให้ข้อความพร้อมเทียบ: ตัดช่องว่างทุกตัวออก และทำตัวอักษรอังกฤษเป็นตัวเล็ก
  * ตัดช่องว่างเพราะภาษาไทยเว้นวรรคไม่แน่นอน "หาด สมิหลา" กับ "หาดสมิหลา" ต้องหาเจอเหมือนกัน
  */
-function normalize(text) {
+export function normalizeText(text) {
   return String(text || '').replace(/\s+/g, '').toLowerCase();
 }
 
 function relevance(point, query) {
-  const name = normalize(point.name);
+  const name = normalizeText(point.name);
   if (name.startsWith(query)) return 4;
   if (name.includes(query)) return 3;
 
   const hazard = HAZARD_TYPES.find((t) => t.id === point.type);
-  if (hazard && normalize(hazard.label).includes(query)) return 2;
+  if (hazard && normalizeText(hazard.label).includes(query)) return 2;
 
-  if (normalize(point.district).includes(query)) return 1;
+  if (normalizeText(point.district).includes(query)) return 1;
   return 0;
 }
 
@@ -41,7 +41,7 @@ function relevance(point, query) {
  * @returns จุดที่ตรง เรียงตามความเกี่ยวข้อง ถ้าไม่ได้พิมพ์อะไรคืนอาเรย์ว่าง
  */
 export function searchPoints(points, query) {
-  const normalizedQuery = normalize(query);
+  const normalizedQuery = normalizeText(query);
   if (!normalizedQuery || !Array.isArray(points)) return [];
 
   return points
