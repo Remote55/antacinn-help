@@ -1,5 +1,8 @@
 # AntacinnHelp Implementation Plan
 
+> **หมายเหตุ (2026-09-11):** ค่าในไฟล์ข้อมูล (`riskPoints.json`, `presetRoutes.json`) ของแผนนี้ถูกแก้ในระยะที่ 2 แล้ว
+> พิกัดเดิมในแผนนี้คลาดสูงสุด 11 กม. ให้ถือไฟล์ใน repo เป็นค่าจริง ดูที่มาใน `data/SOURCES.md`
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** สร้างแอปพลิเคชัน React Native (Expo SDK 54) ที่แสดงจุดเสี่ยงอุบัติเหตุในหาดใหญ่/เมืองสงขลาบนแผนที่ พร้อมวางแผนเส้นทาง เตือนอัตโนมัติด้วย GPS และบันทึกจุดเสี่ยงเอง โดยรันได้จริงทั้งบนมือถือ (Expo Go) และบนเว็บ (Snack Web)
