@@ -113,6 +113,12 @@ export default function TripModeScreen({ navigation, route }) {
     simulation.restart();
   }
 
+  // จบทริปแล้วกด "เล่นอีกครั้ง" ต้องล้างประวัติเหมือนกด "เริ่มใหม่" ไม่อย่างนั้นรายการเตือนรอบก่อนจะค้างอยู่
+  function playSimulation() {
+    if (simulation.isFinished) restartSimulation();
+    else simulation.play();
+  }
+
   // กล้องตามผู้ใช้ แต่ขยับเมื่อห่างกลางจอเกิน 150 ม. เท่านั้น
   const [mapCenter, setMapCenter] = useState(null);
   useEffect(() => {
@@ -186,7 +192,7 @@ export default function TripModeScreen({ navigation, route }) {
           speedUp={simulation.speedUp}
           progressM={simulation.progressM}
           totalM={simulation.totalM}
-          onPlay={simulation.play}
+          onPlay={playSimulation}
           onPause={simulation.pause}
           onRestart={restartSimulation}
           onSpeedChange={simulation.setSpeedUp}

@@ -13,6 +13,7 @@
  */
 
 import { haversineMeters, projectOnSegment } from './geo.js';
+import { DISTANCE } from '../constants/config.js';
 
 /**
  * @param routeCoordinates อาเรย์ของ { lat, lng } เรียงจากต้นทางไปปลายทาง
@@ -50,22 +51,33 @@ export function locateOnRoute(routeCoordinates, position) {
  * จุดเสี่ยงถัดไปที่ผู้ใช้ยังไปไม่ถึง
  * @param pointsOnRoute ผลจาก findRiskPointsAlongRoute (เรียงตามระยะสะสมแล้ว)
  * @param alongM ผู้ใช้วิ่งมาได้กี่เมตรแล้วตามเส้นทาง
+ * @param reachedToleranceM เข้าใกล้จุดไม่เกินระยะนี้ถือว่าถึงแล้ว (ค่าเริ่มต้น 0 = ต้องผ่านจุดจริง ๆ)
  * @returns { item, remainingM } หรือ null ถ้าผ่านทุกจุดแล้ว
+ *          remainingM คิดจากตำแหน่งจริงเสมอ ไม่ถูกหักด้วยระยะที่ถือว่าถึงแล้ว
  */
-export function nextRiskOnRoute(pointsOnRoute, alongM) {
-  const next = (pointsOnRoute || []).find((item) => item.distanceAlongRouteM > alongM);
+export function nextRiskOnRoute(pointsOnRoute, alongM, reachedToleranceM = 0) {
+  const next = (pointsOnRoute || []).find((item) => item.distanceAlongRouteM > alongM + reachedToleranceM);
   return next ? { item: next, remainingM: next.distanceAlongRouteM - alongM } : null;
 }
 
 /**
  * สรุปสถานะบนเส้นทางสำหรับแสดงบนหน้าจอโหมดเดินทาง
  * @param offRouteThresholdM ห่างเส้นทางเกินนี้ถือว่าออกนอกเส้นทาง
+ * @param reachedToleranceM เข้าใกล้จุดไม่เกินระยะนี้ถือว่าถึงแล้ว
+ *   ค่าเริ่มต้นจาก DISTANCE.REACHED_TOLERANCE ไม่มีค่านี้ จุดเสี่ยงที่อยู่ปลายทางพอดี
+ *   จะค้างเป็น "อีก 0 ม." ตลอดไป เพราะระยะของจุดถูกปัดเป็นเมตรเต็มแต่ระยะของผู้ใช้ไม่ถูกปัด
  * @returns null ถ้ายังไม่มีตำแหน่ง หรือหนึ่งในสามแบบ
  *   { kind: 'next', point, remainingM, alongM }  ยังมีจุดเสี่ยงข้างหน้า
  *   { kind: 'offRoute', offRouteM }               ออกนอกเส้นทางที่วางแผนไว้
  *   { kind: 'done', alongM }                      ผ่านจุดเสี่ยงบนเส้นทางครบแล้ว
  */
-export function describeRouteStatus(routeCoordinates, pointsOnRoute, position, offRouteThresholdM) {
+export function describeRouteStatus(
+  routeCoordinates,
+  pointsOnRoute,
+  position,
+  offRouteThresholdM,
+  reachedToleranceM = DISTANCE.REACHED_TOLERANCE
+) {
   const located = locateOnRoute(routeCoordinates, position);
   if (!located) return null;
 
@@ -73,7 +85,7 @@ export function describeRouteStatus(routeCoordinates, pointsOnRoute, position, o
     return { kind: 'offRoute', offRouteM: located.offRouteM };
   }
 
-  const next = nextRiskOnRoute(pointsOnRoute, located.alongM);
+  const next = nextRiskOnRoute(pointsOnRoute, located.alongM, reachedToleranceM);
   if (!next) return { kind: 'done', alongM: located.alongM };
 
   return { kind: 'next', point: next.item.point, remainingM: next.remainingM, alongM: located.alongM };

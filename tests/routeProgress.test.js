@@ -96,3 +96,20 @@ test('describeRouteStatus: ผ่านทุกจุดแล้ว', () => {
 test('describeRouteStatus: ยังไม่มีตำแหน่ง คืน null', () => {
   assert.equal(describeRouteStatus(straightRoute, onRoute, null, 300), null);
 });
+
+test('nextRiskOnRoute: เข้าใกล้จุดจนไม่เกินระยะที่ถือว่าถึงแล้ว นับว่าผ่าน', () => {
+  // ห่างจุด ก 20 ม. (อยู่ในระยะ 30 ม.) นับว่าถึงแล้ว จุดถัดไปคือ ข
+  assert.equal(nextRiskOnRoute(onRoute, 480, 30).item.point.id, 'b');
+  // ห่างจุด ก 40 ม. ยังไม่ถึง
+  assert.equal(nextRiskOnRoute(onRoute, 460, 30).item.point.id, 'a');
+  // ระยะที่เหลือยังคิดจากตำแหน่งจริง ไม่ถูกหักด้วยระยะที่ถือว่าถึงแล้ว
+  assert.equal(nextRiskOnRoute(onRoute, 460, 30).remainingM, 40);
+});
+
+test('describeRouteStatus: ถึงปลายทางที่เป็นจุดเสี่ยง ต้องขึ้นว่าผ่านครบแล้ว ไม่ค้างที่ "อีก 0 ม."', () => {
+  // บั๊กจริงจากการทดสอบในเบราว์เซอร์: ระยะของจุดเสี่ยงถูกปัดเป็นจำนวนเต็ม (4448)
+  // ส่วนระยะของผู้ใช้ที่ปลายทางไม่ถูกปัด (4447.8) จุดที่ปลายทางจึง "อยู่ข้างหน้า" ตลอดไป
+  const atDestination = [{ point: { id: 'end', name: 'ปลายทาง' }, distanceAlongRouteM: 4448 }];
+  const status = describeRouteStatus(straightRoute, atDestination, { lat: 7.04, lng: 100.5 }, 300);
+  assert.equal(status.kind, 'done');
+});
