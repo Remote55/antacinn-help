@@ -4,7 +4,8 @@
   "description": "แอปแผนที่เตือนจุดเสี่ยงสำหรับนักท่องเที่ยว หาดใหญ่-เมืองสงขลา",
   "main": "expo/AppEntry.js",
   "scripts": {
-    "test": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/*.test.js\""
+    "test": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/*.test.js\"",
+    "check:imports": "node scripts/check-imports.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
