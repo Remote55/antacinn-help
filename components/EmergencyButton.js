@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { Text, Pressable, Linking, Alert, StyleSheet } from 'react-native';
+import { Text, Pressable, Linking, StyleSheet } from 'react-native';
+import { showMessage } from './dialogs';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
 export default function EmergencyButton({ label, tel }) {
@@ -16,10 +17,10 @@ export default function EmergencyButton({ label, tel }) {
       if (canOpen) {
         await Linking.openURL(url);
       } else {
-        Alert.alert('โทรออกไม่ได้', 'กรุณาโทรที่หมายเลข ' + tel + ' ด้วยตนเอง');
+        showMessage('โทรออกไม่ได้', 'กรุณาโทรที่หมายเลข ' + tel + ' ด้วยตนเอง');
       }
     } catch (error) {
-      Alert.alert('โทรออกไม่ได้', 'กรุณาโทรที่หมายเลข ' + tel + ' ด้วยตนเอง');
+      showMessage('โทรออกไม่ได้', 'กรุณาโทรที่หมายเลข ' + tel + ' ด้วยตนเอง');
     }
   }
 

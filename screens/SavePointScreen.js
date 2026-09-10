@@ -9,12 +9,11 @@
  */
 
 import React, { useState } from 'react';
-import {
-  View, Text, TextInput, Pressable, ScrollView, Alert, StyleSheet,
-} from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScreenHeader from '../components/ScreenHeader';
 import FilterChips from '../components/FilterChips';
+import { showMessage, confirmAction } from '../components/dialogs';
 import { useSavedPoints } from '../hooks/useSavedPoints';
 import { useUserLocation } from '../hooks/useUserLocation';
 import { HAZARD_TYPES } from '../constants/config';
@@ -34,18 +33,18 @@ export default function SavePointScreen() {
     if (result) {
       setCoordinate({ lat: result.lat, lng: result.lng });
     } else {
-      Alert.alert('ดึงพิกัดไม่สำเร็จ', 'กรุณาตรวจสอบว่าเปิดสิทธิ์การเข้าถึงตำแหน่งแล้ว');
+      showMessage('ดึงพิกัดไม่สำเร็จ', 'กรุณาตรวจสอบว่าเปิดสิทธิ์การเข้าถึงตำแหน่งแล้ว');
     }
   }
 
   async function handleSave() {
     // ตรวจข้อมูลที่จำเป็นก่อนบันทึก
     if (!name.trim()) {
-      Alert.alert('กรอกข้อมูลไม่ครบ', 'กรุณากรอกชื่อจุด');
+      showMessage('กรอกข้อมูลไม่ครบ', 'กรุณากรอกชื่อจุด');
       return;
     }
     if (!coordinate) {
-      Alert.alert('กรอกข้อมูลไม่ครบ', 'กรุณากดปุ่มดึงพิกัดปัจจุบันก่อนบันทึก');
+      showMessage('กรอกข้อมูลไม่ครบ', 'กรุณากดปุ่มดึงพิกัดปัจจุบันก่อนบันทึก');
       return;
     }
 
@@ -61,14 +60,16 @@ export default function SavePointScreen() {
     setDescription('');
     setCoordinate(null);
 
-    Alert.alert('บันทึกแล้ว', 'จุดนี้ถูกเก็บไว้ในเครื่องของคุณ');
+    showMessage('บันทึกแล้ว', 'จุดนี้ถูกเก็บไว้ในเครื่องของคุณ');
   }
 
   function handleDelete(point) {
-    Alert.alert('ลบจุดนี้?', point.name, [
-      { text: 'ยกเลิก', style: 'cancel' },
-      { text: 'ลบ', style: 'destructive', onPress: () => removePoint(point.id) },
-    ]);
+    confirmAction({
+      title: 'ลบจุดนี้?',
+      message: point.name,
+      confirmLabel: 'ลบ',
+      onConfirm: () => removePoint(point.id),
+    });
   }
 
   return (
