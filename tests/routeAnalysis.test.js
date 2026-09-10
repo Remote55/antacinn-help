@@ -136,3 +136,20 @@ test('calculateRouteRiskScore: ไม่ทะลุ 100 และไม่ต�
   const score = calculateRouteRiskScore(makeScored([100, 100, 100]));
   assert.ok(score <= 100 && score >= 0, `คะแนนต้องอยู่ในช่วง 0-100 แต่ได้ ${score}`);
 });
+
+test('จุดเลยปลายทางไปเกินเกณฑ์ ต้องไม่ถูกนับ ถ้าไม่ได้ขอรัศมีปลายทาง', () => {
+  // จุดนี้อยู่เลยปลายเส้นทาง (lat 7.04) ไปทางเหนือ 0.0035 องศา ประมาณ 389 เมตร
+  const points = [makePoint('waterfall', 7.0435, 100.5)];
+  assert.equal(findRiskPointsAlongRoute(straightRoute, points, 300).length, 0);
+});
+
+test('destinationRadiusM: จุดใกล้ปลายทางต้องถูกนับ แม้ห่างถนนเกินเกณฑ์', () => {
+  // สถานการณ์จริง: น้ำตกโตนงาช้างอยู่ห่างจุดสุดท้ายที่รถเข้าถึง 375 เมตร
+  // ถ้าไม่มีกฎนี้ เส้นทางไปน้ำตกจะไม่แสดงอันตรายของตัวน้ำตกเลย
+  const points = [makePoint('waterfall', 7.0435, 100.5)];
+  const result = findRiskPointsAlongRoute(straightRoute, points, 300, { destinationRadiusM: 500 });
+  assert.equal(result.length, 1);
+  // อยู่ปลายทาง ระยะสะสมจึงเท่ากับความยาวเส้นทางทั้งเส้น (ประมาณ 4,448 ม.)
+  assert.ok(Math.abs(result[0].distanceAlongRouteM - 4448) < 60, `ได้ ${result[0].distanceAlongRouteM}`);
+  assert.ok(Math.abs(result[0].distanceFromRouteM - 389) < 30, `ได้ ${result[0].distanceFromRouteM}`);
+});

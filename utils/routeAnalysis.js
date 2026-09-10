@@ -33,11 +33,18 @@ export function calculateRouteLength(routeCoordinates) {
  * @param routeCoordinates อาเรย์ของ { lat, lng } เรียงจากต้นทางไปปลายทาง
  * @param riskPoints อาเรย์ของจุดเสี่ยง แต่ละจุดมีฟิลด์ coordinate
  * @param thresholdMeters ห่างจากเส้นทางไม่เกินเท่านี้ถือว่าอยู่บนเส้นทาง
+ * @param options.destinationRadiusM (ไม่บังคับ) นับจุดที่อยู่ในรัศมีนี้จากปลายทางด้วย
  * @returns อาเรย์ของ { point, distanceFromRouteM, distanceAlongRouteM } เรียงตามระยะทางสะสม
  */
-export function findRiskPointsAlongRoute(routeCoordinates, riskPoints, thresholdMeters) {
+export function findRiskPointsAlongRoute(routeCoordinates, riskPoints, thresholdMeters, options = {}) {
   if (!Array.isArray(routeCoordinates) || routeCoordinates.length < 2) return [];
   if (!Array.isArray(riskPoints) || riskPoints.length === 0) return [];
+
+  // รัศมีรอบปลายทาง: จุดเสี่ยงที่อยู่ในรัศมีนี้จากจุดสุดท้ายของเส้นทาง นับว่าอยู่บนเส้นทางด้วย
+  // จำเป็นเพราะสถานที่ท่องเที่ยวหลายแห่งรถเข้าไม่ถึงตัวจุดพอดี
+  // เช่น น้ำตกโตนงาช้างอยู่ห่างลานจอดรถ 375 เมตร เกินเกณฑ์ปกติ 300 เมตร
+  const { destinationRadiusM = 0 } = options;
+  const destination = routeCoordinates[routeCoordinates.length - 1];
 
   // คำนวณความยาวและระยะทางสะสมของแต่ละ segment ไว้ล่วงหน้า
   // cumulativeDistances[i] = ระยะทางจากต้นทาง มาถึง routeCoordinates[i]
@@ -70,8 +77,11 @@ export function findRiskPointsAlongRoute(routeCoordinates, riskPoints, threshold
       }
     }
 
-    // ไกลเกินเกณฑ์ = ไม่ถือว่าอยู่บนเส้นทางนี้
-    if (closestDistance > thresholdMeters) continue;
+    // ไกลเกินเกณฑ์ = ไม่ถือว่าอยู่บนเส้นทางนี้ ยกเว้นอยู่ใกล้ปลายทาง
+    const isNearRoute = closestDistance <= thresholdMeters;
+    const isNearDestination =
+      destinationRadiusM > 0 && haversineMeters(point.coordinate, destination) <= destinationRadiusM;
+    if (!isNearRoute && !isNearDestination) continue;
 
     // ระยะทางสะสมถึงต้น segment บวกด้วยระยะที่เดินเข้าไปใน segment นั้น (t x ความยาว segment)
     //
