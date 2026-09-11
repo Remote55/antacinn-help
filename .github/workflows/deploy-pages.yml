@@ -1,0 +1,60 @@
+# สร้างเว็บจากโค้ดแล้วขึ้น GitHub Pages อัตโนมัติทุกครั้งที่ push
+#
+# เว็บอยู่ที่ https://<ชื่อบัญชี>.github.io/<ชื่อ repo>/ ไม่ใช่รากของโดเมน
+# จึงต้องบอก Expo ให้ใช้ baseUrl เป็น /<ชื่อ repo> ไม่งั้นไฟล์ JavaScript โหลดไม่เจอและได้หน้าขาว
+# ตั้งค่านี้เฉพาะตอน build บน GitHub เท่านั้น app.json ในเครื่องจึงรันที่รากได้ตามปกติ
+
+name: Deploy web to GitHub Pages
+
+on:
+  push:
+    branches: [master, build/antacinn-help-app]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ถ้า push ติดกันหลายครั้ง ให้ขึ้นเว็บเฉพาะรอบล่าสุด
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # เทสต์ไม่ผ่านหรือ import พัง ไม่ขึ้นเว็บ
+      - name: Test
+        run: |
+          npm test
+          npm run check:imports
+
+      - name: Build web
+        run: |
+          node -e "const fs=require('fs');const app=JSON.parse(fs.readFileSync('app.json','utf8'));app.expo.experiments={...(app.expo.experiments||{}),baseUrl:'/${{ github.event.repository.name }}'};fs.writeFileSync('app.json',JSON.stringify(app,null,2));"
+          npx expo export --platform web
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
