@@ -31,7 +31,10 @@
     },
 
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "lang": "th",
+      "description": "แผนที่เตือนจุดเสี่ยงสำหรับนักท่องเที่ยว หาดใหญ่–เมืองสงขลา รู้ก่อนไป ว่าตรงไหนต้องระวัง",
+      "themeColor": "#1B3A5C"
     },
 
     "plugins": [
