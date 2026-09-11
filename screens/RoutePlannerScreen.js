@@ -29,6 +29,7 @@ import { findRiskPointsAlongRoute, calculateRouteRiskScore } from '../utils/rout
 import { getRiskLevel } from '../utils/riskScore';
 import { isInServiceArea } from '../utils/geo';
 import { formatDistance, formatDuration } from '../utils/format';
+import { pointToMarker } from '../utils/mapMarkers';
 import { DISTANCE, DEFAULT_REGION } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
@@ -168,13 +169,7 @@ export default function RoutePlannerScreen({ navigation, route }) {
   const routeRiskScore = calculateRouteRiskScore(pointsOnRoute);
   const routeRiskLevel = getRiskLevel(routeRiskScore);
 
-  const markers = pointsOnRoute.map((item) => ({
-    id: item.point.id,
-    lat: item.point.coordinate.lat,
-    lng: item.point.coordinate.lng,
-    color: item.point.riskLevel.color,
-    label: item.point.name,
-  }));
+  const markers = pointsOnRoute.map((item) => pointToMarker(item.point));
 
   /** ส่งเส้นทางไปให้โหมดเดินทาง เพื่อให้รู้ว่าผู้ใช้อยู่ตรงไหนของเส้นทาง */
   function startTrip(mode) {

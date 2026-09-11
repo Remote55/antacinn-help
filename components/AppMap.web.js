@@ -13,6 +13,7 @@
  *   region, markers, polyline, fitToPolyline, userLocation, highlight, onMarkerPress, style
  *   fitToPolyline = true ซูมให้เห็นเส้นทางทั้งเส้นทุกครั้งที่เส้นทางเปลี่ยน (ใช้ในหน้าวางแผนเส้นทาง)
  *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
+ *   markers สร้างด้วย pointToMarker (utils/mapMarkers.js): { id, lat, lng, color, label, verified }
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -153,10 +154,11 @@ export default function AppMap({
     markerLayerRef.current.clearLayers();
 
     markers.forEach((marker) => {
+      // ข้อมูลทางการ (verified) ขอบสีน้ำเงินหนากว่า จุดที่ยังไม่ยืนยันขอบขาว (ดู components/MapLegend.js)
       L.circleMarker([marker.lat, marker.lng], {
         radius: 9,
-        color: COLORS.white,
-        weight: 2,
+        color: marker.verified ? COLORS.primary : COLORS.white,
+        weight: marker.verified ? 3 : 2,
         fillColor: marker.color,
         fillOpacity: 1,
       })

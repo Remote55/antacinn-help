@@ -8,6 +8,7 @@
  *   region, markers, polyline, fitToPolyline, userLocation, highlight, onMarkerPress, style
  *   fitToPolyline = true ซูมให้เห็นเส้นทางทั้งเส้นทุกครั้งที่เส้นทางเปลี่ยน (ใช้ในหน้าวางแผนเส้นทาง)
  *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
+ *   markers สร้างด้วย pointToMarker (utils/mapMarkers.js): { id, lat, lng, color, label, verified }
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -67,8 +68,8 @@ export default function AppMap({
           title={marker.label}
           onPress={() => onMarkerPress && onMarkerPress(marker.id)}
         >
-          {/* วาดหมุดเอง แทนหมุดมาตรฐาน เพื่อให้สีตรงกับฝั่งเว็บเป๊ะ ๆ */}
-          <View style={[styles.pin, { backgroundColor: marker.color }]} />
+          {/* วาดหมุดเอง แทนหมุดมาตรฐาน เพื่อให้สีตรงกับฝั่งเว็บเป๊ะ ๆ ข้อมูลทางการขอบสีน้ำเงิน */}
+          <View style={[styles.pin, marker.verified && styles.pinVerified, { backgroundColor: marker.color }]} />
         </Marker>
       ))}
 
@@ -113,6 +114,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: COLORS.white,
+  },
+  pinVerified: {
+    borderWidth: 3,
+    borderColor: COLORS.primary,
   },
   highlight: {
     width: 24,

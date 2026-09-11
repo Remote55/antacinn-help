@@ -13,9 +13,11 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppMap from '../components/AppMap';
 import FilterChips from '../components/FilterChips';
+import MapLegend from '../components/MapLegend';
 import { useRiskPoints } from '../hooks/useRiskPoints';
 import { usePlaces } from '../hooks/usePlaces';
 import { useUserLocation } from '../hooks/useUserLocation';
+import { pointToMarker } from '../utils/mapMarkers';
 import { DEFAULT_REGION } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
@@ -49,14 +51,8 @@ export default function MapScreen({ navigation, route }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.requestId]);
 
-  /** แปลงจุดเสี่ยงให้อยู่ในรูปแบบที่ AppMap ต้องการ */
-  const markers = filteredPoints.map((point) => ({
-    id: point.id,
-    lat: point.coordinate.lat,
-    lng: point.coordinate.lng,
-    color: point.riskLevel.color,
-    label: point.name,
-  }));
+  const markers = filteredPoints.map(pointToMarker);
+  const officialCount = filteredPoints.filter((point) => point.verified === true).length;
 
   /** ปุ่มกลับมาที่ตำแหน่งตัวเอง */
   async function goToMyLocation() {
@@ -75,7 +71,9 @@ export default function MapScreen({ navigation, route }) {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.filterBar}>
         <FilterChips selectedIds={typeFilter} onChange={setTypeFilter} />
-        <Text style={styles.countText}>แสดง {filteredPoints.length} จุด</Text>
+        <Text style={styles.countText}>
+          แสดง {filteredPoints.length} จุด · ข้อมูลทางการ {officialCount} จุด
+        </Text>
       </View>
 
       <View style={styles.mapContainer}>
@@ -98,7 +96,9 @@ export default function MapScreen({ navigation, route }) {
           </View>
         )}
 
-        <Pressable style={styles.locateButton} onPress={goToMyLocation}>
+        <MapLegend />
+
+        <Pressable style={styles.locateButton} onPress={goToMyLocation} accessibilityLabel="ไปที่ตำแหน่งของฉัน">
           <Text style={styles.locateIcon}>📍</Text>
         </Pressable>
       </View>

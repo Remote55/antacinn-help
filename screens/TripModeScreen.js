@@ -33,6 +33,7 @@ import { findRiskPointsAlongRoute } from '../utils/routeAnalysis';
 import { describeRouteStatus } from '../utils/routeProgress';
 import { buildAlertMessage, buildHeadsUpMessage } from '../utils/alertMessage';
 import { haversineMeters } from '../utils/geo';
+import { pointToMarker } from '../utils/mapMarkers';
 import { formatDistance } from '../utils/format';
 import { DISTANCE, DEFAULT_REGION } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
@@ -135,13 +136,7 @@ export default function TripModeScreen({ navigation, route }) {
     ? { latitude: mapCenter.lat, longitude: mapCenter.lng, latitudeDelta: 0.02, longitudeDelta: 0.02 }
     : DEFAULT_REGION;
 
-  const markers = trip.nearbyPoints.map((item) => ({
-    id: item.point.id,
-    lat: item.point.coordinate.lat,
-    lng: item.point.coordinate.lng,
-    color: item.point.riskLevel.color,
-    label: item.point.name,
-  }));
+  const markers = trip.nearbyPoints.map((item) => pointToMarker(item.point));
 
   const errorMessage = mode === 'gps' ? gps.errorMessage : null;
 
