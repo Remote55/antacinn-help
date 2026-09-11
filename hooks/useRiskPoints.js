@@ -8,6 +8,7 @@
 
 import { useMemo } from 'react';
 import baseRiskPoints from '../data/riskPoints.json';
+import officialRiskPoints from '../data/officialRiskPoints.json';
 import { calculateRiskScore, getRiskLevel } from '../utils/riskScore';
 import { searchPoints as rankSearchResults } from '../utils/search';
 import { useSavedPoints } from './useSavedPoints';
@@ -27,8 +28,9 @@ export function useRiskPoints(options = {}) {
       hour: current.getHours(),
     };
 
-    // รวมข้อมูลจากไฟล์ JSON กับจุดที่ผู้ใช้บันทึกเอง
-    const merged = [...baseRiskPoints, ...savedPoints];
+    // รวมสามแหล่ง: จุดที่ทีมกรอก จุดทางการจากกระทรวงคมนาคม (สร้างด้วย scripts/mot-accidents.mjs)
+    // และจุดที่ผู้ใช้บันทึกเอง
+    const merged = [...baseRiskPoints, ...officialRiskPoints, ...savedPoints];
 
     // เติมคะแนนและระดับความเสี่ยงให้ทุกจุด
     return merged.map((point) => {

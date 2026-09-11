@@ -44,3 +44,15 @@ test('ต้นทางและปลายทางของเส้นท�
   }
   assert.deepEqual(tooFar, []);
 });
+
+test('data/officialRiskPoints.json ผ่านกฎทุกข้อ และทุกจุดยืนยันจากข้อมูลทางการ', () => {
+  const points = readJson('../data/officialRiskPoints.json');
+  assert.ok(points.length > 0, 'ต้องมีจุดทางการอย่างน้อยหนึ่งจุด (รัน npm run data:mot)');
+  assert.deepEqual(validateRiskPoints(points), []);
+  assert.ok(points.every((point) => point.verified === true));
+});
+
+test('id ไม่ซ้ำกันข้ามไฟล์จุดของทีมกับจุดทางการ', () => {
+  const ids = [...readJson('../data/riskPoints.json'), ...readJson('../data/officialRiskPoints.json')].map((p) => p.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
