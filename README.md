@@ -106,12 +106,25 @@
 
 ## วิธีรัน
 
+| ช่องทาง | ลิงก์ |
+|---|---|
+| เว็บจริง (ใครก็เปิดได้ อัปเดตเองทุกครั้งที่ push) | https://remote55.github.io/antacinn-help/ |
+| Expo Snack (ส่งงานรายวิชา) | https://snack.expo.dev/KXKjp99In3BgS5P3M1Ba6 |
+| โค้ดทั้งหมด | https://github.com/Remote55/antacinn-help |
+
 ### บนมือถือ (แนะนำ — แผนที่สมบูรณ์ที่สุด)
 1. ติดตั้งแอป **Expo Go** จาก Play Store / App Store
-2. เปิด Snack ของโปรเจค แล้วสแกน QR code
+2. เปิดลิงก์ Snack ข้างบน กด **Run on device** แล้วสแกน QR code
 
 ### บนเว็บผ่าน Snack
 กดแท็บ **Web** ใน Snack ได้เลย — แผนที่จะใช้ Leaflet แทน react-native-maps โดยอัตโนมัติ
+
+### อัปโหลดโค้ดชุดใหม่ขึ้น Snack
+```bash
+npm run snack:upload
+```
+พิมพ์ลิงก์ Snack ใหม่ออกมา (ทุกครั้งได้ลิงก์ใหม่ เอาไปแทนลิงก์ในตารางข้างบน) ใช้ `-- --check` เพื่อตรวจอย่างเดียวไม่บันทึก
+หมายเหตุ: `@react-navigation/native-stack` ล็อกไว้ที่ 7.18.8 เพราะ Snack build เวอร์ชัน 7.18.9 ขึ้นไปไม่ได้ (ตรวจเมื่อ 2026-09-11) ห้ามอัปเดตก่อนตรวจด้วย `--check`
 
 ### รันบนเครื่องตัวเอง
 ```bash
@@ -150,7 +163,8 @@ npm run check:imports
 |---|---|---|
 | `utils/` | คณิตศาสตร์ล้วน **ห้าม import react เด็ดขาด** | 209 เทสต์ |
 | `data/` | จุดเสี่ยงของทีมและจุดทางการ สถานที่ยอดนิยม เส้นทางสำรองออฟไลน์ และที่มาของข้อมูล (`SOURCES.md`, `MOT_REPORT.md`) | 6 เทสต์ ตรวจทุกไฟล์ตามกติกา |
-| `scripts/` | `check-imports.mjs` ตรวจ import ก่อนอัปโหลด, `mot-accidents.mjs` สร้างจุดทางการ | รันด้วย npm run |
+| `scripts/` | `check-imports.mjs` ตรวจ import ก่อนอัปโหลด, `mot-accidents.mjs` สร้างจุดทางการ, `upload-snack.mjs` อัปโหลดขึ้น Snack | รันด้วย npm run |
+| `.github/workflows/` | build และขึ้นเว็บ GitHub Pages อัตโนมัติ (รันเทสต์ก่อน ไม่ผ่านไม่ขึ้นเว็บ) | ทุกครั้งที่ push |
 | `hooks/` | GPS, การเก็บข้อมูลลงเครื่อง, state | ทดสอบตอนรันแอป |
 | `components/` | UI ที่ใช้ซ้ำหลายหน้า | ทดสอบตอนรันแอป |
 | `screens/` | 6 หน้าจอของแอป | ทดสอบตอนรันแอป |
