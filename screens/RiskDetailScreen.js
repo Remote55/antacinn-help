@@ -67,7 +67,12 @@ export default function RiskDetailScreen({ route }) {
         </Text>
 
         <View style={styles.badgeRow}>
-          <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} size="large" />
+          <RiskBadge
+            riskLevel={point.riskLevel}
+            score={point.riskScore}
+            hasStatistics={point.hasStatistics}
+            size="large"
+          />
           <VerificationBadge verified={point.verified} />
         </View>
 

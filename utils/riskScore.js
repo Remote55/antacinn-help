@@ -80,9 +80,19 @@ export function calculateRiskScore(point, context) {
 }
 
 /**
+ * จุดนี้มีสถิติเหตุการณ์ในระบบไหม
+ *
+ * จุดที่ไม่มีสถิติได้คะแนน 0 แต่ 0 ไม่ได้แปลว่าปลอดภัย แค่ยังไม่มีข้อมูล
+ * (หลักเดียวกับการห้ามใช้สีเขียว) หน้าจอจึงใช้ค่านี้แสดง "ยังไม่มีสถิติ" แทนเลข 0
+ */
+export function hasIncidentStatistics(point) {
+  return calculateWeightedIncidents(point && point.incidents) > 0;
+}
+
+/**
  * แปลงคะแนนเป็นระดับความเสี่ยง พร้อมป้ายภาษาไทยและสีหมุด
  *
- * @returns { id, label, min, max, color }
+ * @returns { id, label, min, max, color, textColor }
  */
 export function getRiskLevel(score) {
   const safeScore = clamp(score, 0, 100);

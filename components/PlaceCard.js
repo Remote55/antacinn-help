@@ -40,7 +40,7 @@ export default function PlaceCard({ place, onShowMap, onNavigate, style }) {
           <Text style={styles.riskText}>
             จุดเสี่ยงรอบ {RADIUS_LABEL} {count} จุด · สูงสุด
           </Text>
-          <RiskBadge riskLevel={highest.riskLevel} score={highest.riskScore} />
+          <RiskBadge riskLevel={highest.riskLevel} score={highest.riskScore} hasStatistics={highest.hasStatistics} />
         </View>
       ) : (
         <Text style={styles.noDataText}>ยังไม่มีข้อมูลจุดเสี่ยงในรัศมี {RADIUS_LABEL}</Text>

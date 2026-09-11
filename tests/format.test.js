@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatDistance, formatDuration, summarizeIncidents, describeHours } from '../utils/format.js';
+import { formatDistance, formatDuration, summarizeIncidents, describeHours, formatRiskLabel } from '../utils/format.js';
 
 test('formatDistance: ต่ำกว่า 1 กม. แสดงเป็นเมตร', () => {
   assert.equal(formatDistance(244), '244 ม.');
@@ -73,4 +73,13 @@ test('describeHours: ช่วงข้ามเที่ยงคืน', () =>
 
 test('describeHours: หลายช่วงแยกกัน', () => {
   assert.equal(describeHours([8, 17, 18]), '08:00-09:00, 17:00-19:00');
+});
+
+test('formatRiskLabel: มีสถิติ แสดงระดับคู่คะแนน', () => {
+  assert.equal(formatRiskLabel({ label: 'เสี่ยง' }, 43, true), 'เสี่ยง · 43');
+  assert.equal(formatRiskLabel({ label: 'เสี่ยง' }, 43), 'เสี่ยง · 43');
+});
+
+test('formatRiskLabel: ไม่มีสถิติ ไม่แสดงเลข 0 เพราะผู้ใช้จะเข้าใจว่าปลอดภัย', () => {
+  assert.equal(formatRiskLabel({ label: 'เฝ้าระวัง' }, 0, false), 'เฝ้าระวัง · ยังไม่มีสถิติ');
 });

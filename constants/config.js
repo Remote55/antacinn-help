@@ -99,11 +99,14 @@ export const CONTEXT_FACTORS = {
  * สำคัญ: ห้ามมีสีเขียวเด็ดขาด
  * เพราะถ้าผู้ใช้เห็นสีเขียวจะเข้าใจว่า "ปลอดภัย"
  * แต่ความจริงคือ "ยังไม่มีข้อมูลในระบบ" ซึ่งไม่เหมือนกัน
+ *
+ * textColor = สีตัวอักษรบนพื้นสีนั้น ตัวอักษรขาวบนเหลืองหรือส้มอ่านไม่ออก (คมชัดแค่ 1.7:1 และ 2.7:1)
+ * จึงใช้ตัวอักษรเข้มกับสองระดับแรก เทสต์ tests/color.test.js ตรวจว่าทุกคู่ได้อย่างน้อย 4.5:1
  */
 export const RISK_LEVELS = [
-  { id: 'watch',    label: 'เฝ้าระวัง',   min: 0,  max: 39,  color: '#FBC02D' }, // เหลือง
-  { id: 'risky',    label: 'เสี่ยง',      min: 40, max: 69,  color: '#F57C00' }, // ส้ม
-  { id: 'critical', label: 'อันตรายมาก',  min: 70, max: 100, color: '#D32F2F' }, // แดง
+  { id: 'watch',    label: 'เฝ้าระวัง',   min: 0,  max: 39,  color: '#FBC02D', textColor: '#1A1A1A' }, // เหลือง
+  { id: 'risky',    label: 'เสี่ยง',      min: 40, max: 69,  color: '#F57C00', textColor: '#1A1A1A' }, // ส้ม
+  { id: 'critical', label: 'อันตรายมาก',  min: 70, max: 100, color: '#D32F2F', textColor: '#FFFFFF' }, // แดง
 ];
 
 /** ประเภทอันตราย ใช้ทั้งในตัวกรองและในฟอร์มบันทึกจุด */

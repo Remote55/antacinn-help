@@ -37,7 +37,7 @@ export default function RiskPointCard({ point, distanceLabel, onPress }) {
       </Text>
 
       <View style={styles.footer}>
-        <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} />
+        <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} hasStatistics={point.hasStatistics} />
         {/* บอกทุกจุดว่ายืนยันจากเอกสารทางการแล้วหรือยัง ไม่ให้เข้าใจผิดว่าเป็นสถิติทางการ */}
         <VerificationBadge verified={point.verified} />
       </View>

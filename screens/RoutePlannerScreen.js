@@ -265,7 +265,11 @@ export default function RoutePlannerScreen({ navigation, route }) {
                   {/* คะแนนความปลอดภัยรวมของทั้งเส้นทาง */}
                   <View style={styles.scoreRow}>
                     <Text style={styles.scoreLabel}>คะแนนความเสี่ยงรวมของเส้นทาง</Text>
-                    <RiskBadge riskLevel={routeRiskLevel} score={routeRiskScore} />
+                    <RiskBadge
+                      riskLevel={routeRiskLevel}
+                      score={routeRiskScore}
+                      hasStatistics={pointsOnRoute.some((item) => item.point.hasStatistics)}
+                    />
                   </View>
                 </View>
 

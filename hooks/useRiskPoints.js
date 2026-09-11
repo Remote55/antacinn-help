@@ -9,7 +9,7 @@
 import { useMemo } from 'react';
 import baseRiskPoints from '../data/riskPoints.json';
 import officialRiskPoints from '../data/officialRiskPoints.json';
-import { calculateRiskScore, getRiskLevel } from '../utils/riskScore';
+import { calculateRiskScore, getRiskLevel, hasIncidentStatistics } from '../utils/riskScore';
 import { searchPoints as rankSearchResults } from '../utils/search';
 import { useSavedPoints } from './useSavedPoints';
 
@@ -33,12 +33,14 @@ export function useRiskPoints(options = {}) {
     const merged = [...baseRiskPoints, ...officialRiskPoints, ...savedPoints];
 
     // เติมคะแนนและระดับความเสี่ยงให้ทุกจุด
+    // hasStatistics = false คือคะแนน 0 เพราะยังไม่มีข้อมูล ไม่ใช่เพราะปลอดภัย
     return merged.map((point) => {
       const score = calculateRiskScore(point, context);
       return {
         ...point,
         riskScore: score,
         riskLevel: getRiskLevel(score),
+        hasStatistics: hasIncidentStatistics(point),
       };
     });
   }, [savedPoints, now]);

@@ -4,28 +4,33 @@
  * ออกแบบให้อ่านได้ในหนึ่งวินาทีขณะขับขี่: ตัวอักษรใหญ่ สีตามระดับความเสี่ยง
  * ระยะที่แสดงคำนวณใหม่ทุกครั้งที่ตำแหน่งเปลี่ยน จึงนับถอยหลังจริง
  * (เดิมค้างที่ค่าตอนเริ่มเตือน ขยับเข้าใกล้แล้วตัวเลขไม่ลด)
+ *
+ * สีตัวอักษรมากับระดับความเสี่ยง (riskLevel.textColor): เข้มบนเหลืองและส้ม ขาวบนแดง
+ * ไม่ลดความทึบของบรรทัดรอง เพราะจะทำให้คมชัดต่ำกว่าเกณฑ์ ใช้ขนาดตัวอักษรแบ่งลำดับความสำคัญแทน
  */
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { formatDistance } from '../utils/format';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { formatDistance, formatRiskLabel } from '../utils/format';
+import { SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
 export default function TripAlertCard({ point, liveDistanceM, onPress, onDismiss }) {
+  const textColor = { color: point.riskLevel.textColor };
+
   return (
     <Pressable style={[styles.card, { backgroundColor: point.riskLevel.color }]} onPress={onPress}>
       <View style={styles.header}>
-        <Text style={styles.title}>⚠️ ระวัง!</Text>
-        <Text style={styles.distance}>อีก {formatDistance(liveDistanceM)}</Text>
+        <Text style={[styles.title, textColor]}>⚠️ ระวัง!</Text>
+        <Text style={[styles.distance, textColor]}>อีก {formatDistance(liveDistanceM)}</Text>
         <Pressable onPress={onDismiss} hitSlop={12} accessibilityLabel="ปิดการเตือน">
-          <Text style={styles.close}>✕</Text>
+          <Text style={[styles.close, textColor]}>✕</Text>
         </Pressable>
       </View>
-      <Text style={styles.name}>{point.name}</Text>
-      <Text style={styles.meta}>
-        {point.riskLevel.label} · {point.riskScore}
+      <Text style={[styles.name, textColor]}>{point.name}</Text>
+      <Text style={[styles.meta, textColor]}>
+        {formatRiskLabel(point.riskLevel, point.riskScore, point.hasStatistics)}
       </Text>
-      <Text style={styles.hint}>แตะเพื่อดูรายละเอียด</Text>
+      <Text style={[styles.hint, textColor]}>แตะเพื่อดูรายละเอียด</Text>
     </Pressable>
   );
 }
@@ -44,32 +49,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    color: COLORS.white,
     fontSize: FONT_SIZES.subtitle,
     fontWeight: 'bold',
   },
   distance: {
-    color: COLORS.white,
     fontSize: FONT_SIZES.alert,
     fontWeight: 'bold',
   },
   close: {
-    color: COLORS.white,
     fontSize: FONT_SIZES.title,
   },
   name: {
-    color: COLORS.white,
     fontSize: FONT_SIZES.title,
     fontWeight: '600',
   },
   meta: {
-    color: COLORS.white,
     fontSize: FONT_SIZES.body,
-    opacity: 0.9,
   },
   hint: {
-    color: COLORS.white,
     fontSize: FONT_SIZES.small,
-    opacity: 0.8,
   },
 });

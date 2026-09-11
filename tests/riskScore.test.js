@@ -9,6 +9,7 @@ import {
   calculateWeightedIncidents,
   calculateRiskScore,
   getRiskLevel,
+  hasIncidentStatistics,
 } from '../utils/riskScore.js';
 
 /** จุดตัวอย่างสำหรับเทสต์: ทางขึ้นเขาคอหงส์ ตามม็อกอัพในเอกสารหน้า 7 */
@@ -123,4 +124,19 @@ test('getRiskLevel: ต้องไม่มีระดับไหนเป็
     const color = getRiskLevel(score).color.toLowerCase();
     assert.ok(!color.startsWith('#0'), `คะแนน ${score} ใช้สีที่ดูเหมือนเขียว: ${color}`);
   }
+});
+
+// คะแนน 0 ของจุดที่ไม่มีสถิติ ไม่ได้แปลว่าปลอดภัย แค่ยังไม่มีข้อมูล หน้าจอต้องแยกสองกรณีนี้ออกจากกัน
+test('hasIncidentStatistics: จุดที่ยังไม่มีสถิติ (อาเรย์ว่าง หรือไม่มีฟิลด์) = false', () => {
+  assert.equal(hasIncidentStatistics({ incidents: [] }), false);
+  assert.equal(hasIncidentStatistics({}), false);
+});
+
+test('hasIncidentStatistics: มีแถวแต่จำนวนเป็น 0 หรือความรุนแรงที่ไม่รู้จัก = false', () => {
+  assert.equal(hasIncidentStatistics({ incidents: [{ year: 2566, severity: 'minor', count: 0 }] }), false);
+  assert.equal(hasIncidentStatistics({ incidents: [{ year: 2566, severity: 'unknown', count: 3 }] }), false);
+});
+
+test('hasIncidentStatistics: มีเหตุการณ์อย่างน้อยหนึ่งครั้ง = true', () => {
+  assert.equal(hasIncidentStatistics({ incidents: [{ year: 2566, severity: 'minor', count: 1 }] }), true);
 });
