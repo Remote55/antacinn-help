@@ -13,6 +13,7 @@
  * และบอก "จุดเสี่ยงถัดไป อีกกี่กิโลเมตรตามเส้นทาง" (เอกสารบทที่ 5.2)
  *
  * ข้อจำกัด: ต้องเปิดแอปค้างไว้ เพราะ Expo Go ไม่รองรับการติดตามตำแหน่งแบบเบื้องหลัง
+ * หน้าจอนี้จึงสั่งไม่ให้จอดับเองตลอดเวลาที่เปิดอยู่ (useScreenAwake)
  */
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -27,6 +28,7 @@ import { useUserLocation } from '../hooks/useUserLocation';
 import { useSimulatedLocation } from '../hooks/useSimulatedLocation';
 import { useTripAlerts } from '../hooks/useTripAlerts';
 import { useVoiceAlerts } from '../hooks/useVoiceAlerts';
+import { useScreenAwake } from '../hooks/useScreenAwake';
 import { findRiskPointsAlongRoute } from '../utils/routeAnalysis';
 import { describeRouteStatus } from '../utils/routeProgress';
 import { buildAlertMessage, buildHeadsUpMessage } from '../utils/alertMessage';
@@ -53,6 +55,7 @@ export default function TripModeScreen({ navigation, route }) {
 
   const voice = useVoiceAlerts();
   const { announce } = voice;
+  const { canKeepAwake } = useScreenAwake();
   const [currentAlert, setCurrentAlert] = useState(null);
 
   // เตือนเมื่อเข้าใกล้จุดเสี่ยง: ภาพ + เสียงพูด (แทรกได้) + สั่น
@@ -166,6 +169,11 @@ export default function TripModeScreen({ navigation, route }) {
 
       {voice.hasThaiVoice === false && (
         <Text style={styles.noteText}>เครื่องนี้ไม่มีเสียงภาษาไทย แอปจะเตือนด้วยภาพและการสั่นแทน</Text>
+      )}
+      {canKeepAwake === false && (
+        <Text style={styles.noteText}>
+          เครื่องนี้สั่งไม่ให้จอดับเองไม่ได้ ถ้าจอดับการเตือนจะหยุด ควรตั้งเวลาปิดหน้าจอให้นานขึ้นระหว่างเดินทาง
+        </Text>
       )}
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
       {/* ใช้ GPS ไม่ได้แต่มีเส้นทางอยู่แล้ว เสนอให้ดูการเตือนแบบจำลองแทน */}
