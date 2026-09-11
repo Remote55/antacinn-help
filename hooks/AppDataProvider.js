@@ -13,7 +13,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/config';
-import { buildUserPoint } from '../utils/userPoint';
+import { buildUserPoint, sanitizeSavedPoints } from '../utils/userPoint';
 import { toggleFavoriteId } from '../utils/favorites';
 
 const AppDataContext = createContext(null);
@@ -32,7 +32,8 @@ export function AppDataProvider({ children }) {
   const reloadSavedPoints = useCallback(async () => {
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEYS.SAVED_POINTS);
-      const points = raw ? JSON.parse(raw) : [];
+      // ข้อมูลในเครื่องอาจเสียรูปแบบ ตรวจก่อนใช้ ไม่อย่างนั้นแอปจะพังทุกครั้งที่เปิด
+      const points = sanitizeSavedPoints(raw ? JSON.parse(raw) : []);
       savedPointsRef.current = points;
       setSavedPoints(points);
     } catch (error) {

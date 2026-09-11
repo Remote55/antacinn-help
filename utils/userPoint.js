@@ -38,3 +38,45 @@ export function buildUserPoint({ name, type, description, coordinate }, now = ne
     createdAt: now.toISOString(),
   };
 }
+
+/**
+ * ตรวจและซ่อมรายการจุดที่อ่านขึ้นมาจากที่เก็บในเครื่อง ก่อนส่งให้หน้าจอใช้
+ *
+ * ข้อมูลในเครื่องเสียได้ (แอปเวอร์ชันเก่าเขียนไว้คนละรูปแบบ เขียนไม่ครบตอนแอปถูกปิดกลางคัน
+ * หรือถูกแก้จากภายนอก) ถ้าปล่อยผ่าน หน้าจอที่อ่าน coordinate.lat จะพังทุกครั้งที่เปิดแอป
+ *
+ * - ไม่ใช่อาเรย์ → รายการว่าง
+ * - ทิ้งรายการที่ไม่มี id ไม่มีชื่อ หรือพิกัดไม่ใช่ตัวเลข
+ * - บังคับกฎของจุดผู้ใช้ซ้ำทุกครั้งที่อ่าน (เหมือน buildUserPoint): ไม่มีสถิติ verified: false
+ *   และ source บอกว่าไม่ใช่สถิติทางการ จุดของผู้ใช้จึงไม่มีทางกลายเป็น "ข้อมูลทางการ"
+ */
+export function sanitizeSavedPoints(value) {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(isUsableSavedPoint).map((item) => ({
+    ...item,
+    category: CATEGORIES.ROAD,
+    district: USER_POINT_DISTRICT,
+    incidents: [],
+    peakMonths: [],
+    peakHours: [],
+    advice: Array.isArray(item.advice) ? item.advice.filter((line) => typeof line === 'string') : [],
+    emergency: [DEFAULT_EMERGENCY],
+    source: USER_POINT_SOURCE,
+    verified: false,
+    isUserCreated: true,
+  }));
+}
+
+function isUsableSavedPoint(item) {
+  return Boolean(
+    item &&
+      typeof item.id === 'string' &&
+      item.id.length > 0 &&
+      typeof item.name === 'string' &&
+      item.name.trim().length > 0 &&
+      item.coordinate &&
+      Number.isFinite(item.coordinate.lat) &&
+      Number.isFinite(item.coordinate.lng)
+  );
+}

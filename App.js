@@ -6,8 +6,8 @@
  *
  * รายวิชา 344-312 Mobile Application Development ภาคการศึกษาที่ 1/2569
  *
- * ไฟล์นี้ทำแค่ 4 อย่าง คือครอบ SafeArea, ครอบข้อมูลกลาง (AppDataProvider),
- * ครอบ NavigationContainer และเรียก RootNavigator
+ * ไฟล์นี้ทำแค่ 5 อย่าง คือครอบ SafeArea, ครอบตัวดักข้อผิดพลาด (ErrorBoundary),
+ * ครอบข้อมูลกลาง (AppDataProvider), ครอบ NavigationContainer และเรียก RootNavigator
  * ตรรกะทั้งหมดอยู่ในโฟลเดอร์ screens, hooks และ utils
  */
 
@@ -18,6 +18,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import RootNavigator from './navigation/RootNavigator';
+import ErrorBoundary from './components/ErrorBoundary';
 import { AppDataProvider } from './hooks/AppDataProvider';
 import { COLORS } from './constants/theme';
 
@@ -31,17 +32,20 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {/* ข้อมูลกลางต้องครอบ NavigationContainer เพื่อให้ทุกหน้าจอเห็นข้อมูลชุดเดียวกัน */}
-      <AppDataProvider>
-        <View style={styles.page}>
-          <View style={[styles.app, isWideWebScreen && styles.webColumn]}>
-            <NavigationContainer>
-              <StatusBar style="light" />
-              <RootNavigator />
-            </NavigationContainer>
-          </View>
+      <View style={styles.page}>
+        <View style={[styles.app, isWideWebScreen && styles.webColumn]}>
+          {/* หน้าจอไหนพังระหว่างวาด แสดงหน้าขอโทษพร้อมปุ่มลองใหม่และเบอร์ฉุกเฉิน แทนจอขาว */}
+          <ErrorBoundary>
+            {/* ข้อมูลกลางต้องครอบ NavigationContainer เพื่อให้ทุกหน้าจอเห็นข้อมูลชุดเดียวกัน */}
+            <AppDataProvider>
+              <NavigationContainer>
+                <StatusBar style="light" />
+                <RootNavigator />
+              </NavigationContainer>
+            </AppDataProvider>
+          </ErrorBoundary>
         </View>
-      </AppDataProvider>
+      </View>
     </SafeAreaProvider>
   );
 }
