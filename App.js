@@ -11,7 +11,7 @@
  * ตรรกะทั้งหมดอยู่ในโฟลเดอร์ screens, hooks และ utils
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import RootNavigator from './navigation/RootNavigator';
 import ErrorBoundary from './components/ErrorBoundary';
+import OfflineBanner from './components/OfflineBanner';
 import { AppDataProvider } from './hooks/AppDataProvider';
 import { COLORS } from './constants/theme';
 
@@ -30,10 +31,20 @@ export default function App() {
   // บนคอมพิวเตอร์ แสดงแอปเป็นคอลัมน์ขนาดมือถือตรงกลางจอ แทนการยืดการ์ดเต็มจอกว้าง
   const isWideWebScreen = Platform.OS === 'web' && width > MAX_WEB_APP_WIDTH;
 
+  // เว็บที่ build แล้ว: ลงทะเบียน service worker ให้เปิดแอปได้แม้ไม่มีอินเทอร์เน็ต
+  // (ไฟล์ sw.js สร้างโดย scripts/build-sw.mjs ตอนพัฒนาไม่มีไฟล์นี้ และไม่ควรเก็บโค้ดที่กำลังแก้ไว้)
+  useEffect(() => {
+    if (Platform.OS !== 'web' || __DEV__ || typeof navigator === 'undefined' || !navigator.serviceWorker) return;
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      // ลงทะเบียนไม่ได้ (เช่น เปิดผ่าน http ธรรมดา) แอปยังใช้ได้ตามปกติ แค่ไม่มีโหมดออฟไลน์
+    });
+  }, []);
+
   return (
     <SafeAreaProvider>
       <View style={styles.page}>
         <View style={[styles.app, isWideWebScreen && styles.webColumn]}>
+          <OfflineBanner />
           {/* หน้าจอไหนพังระหว่างวาด แสดงหน้าขอโทษพร้อมปุ่มลองใหม่และเบอร์ฉุกเฉิน แทนจอขาว */}
           <ErrorBoundary>
             {/* ข้อมูลกลางต้องครอบ NavigationContainer เพื่อให้ทุกหน้าจอเห็นข้อมูลชุดเดียวกัน */}

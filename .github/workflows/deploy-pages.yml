@@ -40,10 +40,11 @@ jobs:
           npm test
           npm run check:imports
 
+      # build:web = expo export แล้วสร้าง sw.js (ให้เปิดเว็บได้ตอนออฟไลน์) จากไฟล์ที่ได้
       - name: Build web
         run: |
           node -e "const fs=require('fs');const app=JSON.parse(fs.readFileSync('app.json','utf8'));app.expo.experiments={...(app.expo.experiments||{}),baseUrl:'/${{ github.event.repository.name }}'};fs.writeFileSync('app.json',JSON.stringify(app,null,2));"
-          npx expo export --platform web
+          npm run build:web
 
       - uses: actions/upload-pages-artifact@v3
         with:

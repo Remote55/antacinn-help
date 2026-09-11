@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+  แม่แบบหน้าเว็บของ AntacinnHelp (Expo ใช้ไฟล์นี้แทนแม่แบบตั้งต้นเมื่อ build เว็บ)
+  ต่างจากแม่แบบของ Expo แค่ส่วน "เว็บแอป" ด้านล่าง: manifest ไอคอน และค่าสำหรับ iPhone
+  ลิงก์ทุกอันเป็นแบบสัมพัทธ์ (ไม่ขึ้นต้นด้วย /) จึงใช้ได้ทั้งตอนเปิดที่ราก และบน GitHub Pages ที่อยู่ใต้ /antacinn-help/
+-->
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+
+    <!-- เว็บแอป (PWA): ติดตั้งลงหน้าจอหลักได้ และเปิดได้แม้ไม่มีอินเทอร์เน็ต (service worker ลงทะเบียนใน App.js) -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="AntacinnHelp" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>ต้องเปิด JavaScript ในเบราว์เซอร์ก่อน จึงจะใช้ AntacinnHelp ได้</noscript>
+    <div id="root"></div>
+  </body>
+</html>
