@@ -45,6 +45,8 @@ function loadLeaflet() {
 
     const script = document.createElement('script');
     script.src = LEAFLET_JS;
+    // ถ้าไม่ใส่ crossOrigin เบราว์เซอร์จะซ่อนรายละเอียดของ error จากสคริปต์ต่างโดเมน ไล่บั๊กไม่ได้
+    script.crossOrigin = 'anonymous';
     script.onload = () => resolve(window.L);
     script.onerror = () => reject(new Error('โหลดไลบรารีแผนที่จาก CDN ไม่สำเร็จ'));
     document.head.appendChild(script);
@@ -98,7 +100,11 @@ export default function AppMap({
       .then((L) => {
         if (isCancelled || !containerRef.current || mapRef.current) return;
 
-        const map = L.map(containerRef.current).setView(
+        // zoomAnimation: false เพราะภาพเคลื่อนไหวตอนซูมตั้งเวลาไว้ทำงานต่อหลังซูม
+        // ถ้าหน้าจอถูกปิด (เช่น ออกจากโหมดเดินทาง) ก่อนภาพเคลื่อนไหวจบ ตัวจับเวลานั้นจะอ้างถึง
+        // ส่วนของแผนที่ที่ถูกลบไปแล้วและ throw error (เจอตอนทดสอบ: TypeError อ่าน classList / _leaflet_pos ไม่ได้)
+        // (Leaflet ปิดภาพเคลื่อนไหวนี้บน Android เป็นค่าเริ่มต้นอยู่แล้ว ผู้ใช้มือถือส่วนใหญ่จึงไม่เห็นความต่าง)
+        const map = L.map(containerRef.current, { zoomAnimation: false }).setView(
           [region.latitude, region.longitude],
           deltaToZoom(region.latitudeDelta)
         );
