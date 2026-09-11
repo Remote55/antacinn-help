@@ -113,7 +113,7 @@
 | ช่องทาง | ลิงก์ |
 |---|---|
 | เว็บจริง (ใครก็เปิดได้ อัปเดตเองทุกครั้งที่ push) | https://remote55.github.io/antacinn-help/ |
-| Expo Snack (ส่งงานรายวิชา) | https://snack.expo.dev/KXKjp99In3BgS5P3M1Ba6 |
+| Expo Snack (ส่งงานรายวิชา) | https://snack.expo.dev/R1d2Tn1__U_PsiyTtB-_F |
 | โค้ดทั้งหมด | https://github.com/Remote55/antacinn-help |
 
 ### บนมือถือ (แนะนำ — แผนที่สมบูรณ์ที่สุด)
