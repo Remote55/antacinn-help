@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatDistance, formatDuration, summarizeIncidents } from '../utils/format.js';
+import { formatDistance, formatDuration, summarizeIncidents, describeHours } from '../utils/format.js';
 
 test('formatDistance: ต่ำกว่า 1 กม. แสดงเป็นเมตร', () => {
   assert.equal(formatDistance(244), '244 ม.');
@@ -54,4 +54,23 @@ test('summarizeIncidents: เรียงจากรุนแรงมากไ
     { severity: 'serious', count: 1 },
   ];
   assert.equal(summarizeIncidents(incidents), 'เสียชีวิต 1 · บาดเจ็บสาหัส 1 · บาดเจ็บเล็กน้อย 1');
+});
+
+test('describeHours: ยังไม่มีข้อมูล', () => {
+  assert.equal(describeHours([]), 'ยังไม่ระบุ');
+  assert.equal(describeHours(undefined), 'ยังไม่ระบุ');
+});
+
+test('describeHours: ช่วงต่อเนื่อง ไม่สนลำดับที่กรอก ชั่วโมงสุดท้ายนับถึงต้นชั่วโมงถัดไป', () => {
+  assert.equal(describeHours([17, 18, 19]), '17:00-20:00');
+  assert.equal(describeHours([19, 17, 18]), '17:00-20:00');
+});
+
+test('describeHours: ช่วงข้ามเที่ยงคืน', () => {
+  assert.equal(describeHours([23, 0, 1]), '23:00-02:00');
+  assert.equal(describeHours([22, 23]), '22:00-00:00');
+});
+
+test('describeHours: หลายช่วงแยกกัน', () => {
+  assert.equal(describeHours([8, 17, 18]), '08:00-09:00, 17:00-19:00');
 });

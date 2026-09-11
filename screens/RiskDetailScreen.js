@@ -14,7 +14,7 @@ import Disclaimer from '../components/Disclaimer';
 import EmergencyButton from '../components/EmergencyButton';
 import { useRiskPoints } from '../hooks/useRiskPoints';
 import { useFavorites } from '../hooks/useFavorites';
-import { summarizeIncidents } from '../utils/format';
+import { summarizeIncidents, describeHours } from '../utils/format';
 import { SEVERITY_LABELS, HAZARD_TYPES } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
@@ -28,16 +28,6 @@ function describeMonths(peakMonths) {
   if (!peakMonths || peakMonths.length === 0) return 'ยังไม่ระบุ';
   if (peakMonths.length === 12) return 'ตลอดทั้งปี';
   return peakMonths.map((m) => THAI_MONTHS_SHORT[m - 1]).join(' · ');
-}
-
-/** แปลงรายการชั่วโมงเป็นช่วงเวลา เช่น "17:00-20:00" */
-function describeHours(peakHours) {
-  if (!peakHours || peakHours.length === 0) return 'ยังไม่ระบุ';
-  const sorted = [...peakHours].sort((a, b) => a - b);
-  const first = String(sorted[0]).padStart(2, '0');
-  // +1 เพราะชั่วโมง 20 หมายถึงช่วง 20:00-21:00 จึงจบที่ 21:00
-  const last = String(sorted[sorted.length - 1] + 1).padStart(2, '0');
-  return `${first}:00-${last}:00`;
 }
 
 export default function RiskDetailScreen({ route }) {

@@ -69,3 +69,33 @@ export function summarizeIncidents(incidents) {
 
   return parts.join(' · ');
 }
+
+/**
+ * ช่วงเวลาที่เสี่ยง เช่น [17, 18, 19] → "17:00-20:00"
+ * ชั่วโมง 19 หมายถึงช่วง 19:00–20:00 เวลาสิ้นสุดจึงเป็นชั่วโมงสุดท้าย + 1
+ * รองรับช่วงข้ามเที่ยงคืน [23, 0, 1] → "23:00-02:00" และหลายช่วง [8, 17, 18] → "08:00-09:00, 17:00-19:00"
+ */
+export function describeHours(peakHours) {
+  const hours = [...new Set(Array.isArray(peakHours) ? peakHours : [])]
+    .filter((hour) => Number.isInteger(hour) && hour >= 0 && hour <= 23)
+    .sort((a, b) => a - b);
+  if (hours.length === 0) return 'ยังไม่ระบุ';
+  if (hours.length === 24) return 'ตลอดทั้งวัน';
+
+  // แบ่งเป็นช่วงต่อเนื่อง
+  const runs = [];
+  for (const hour of hours) {
+    const currentRun = runs[runs.length - 1];
+    if (currentRun && hour === currentRun[currentRun.length - 1] + 1) currentRun.push(hour);
+    else runs.push([hour]);
+  }
+
+  // ช่วงที่ลงท้าย 23 กับช่วงที่เริ่ม 0 คือช่วงเดียวกันที่ข้ามเที่ยงคืน
+  const lastRun = runs[runs.length - 1];
+  if (runs.length > 1 && runs[0][0] === 0 && lastRun[lastRun.length - 1] === 23) {
+    lastRun.push(...runs.shift());
+  }
+
+  const clock = (hour) => `${String(hour % 24).padStart(2, '0')}:00`;
+  return runs.map((run) => `${clock(run[0])}-${clock(run[run.length - 1] + 1)}`).join(', ');
+}
