@@ -1003,7 +1003,7 @@ async function reverseGeocode({ lat, lng }) {
   // ใช้เฉพาะชื่อที่เป็นภาษาไทยล้วน บางที่ใน OpenStreetMap มีแต่ชื่ออังกฤษ
   const locality =
     [address.village, address.hamlet, address.suburb, address.quarter, address.town].find(
-      (name) => name && /[฀-๿]/.test(name) && !/[A-Za-z]/.test(name)
+      (name) => name && /[ก-๙]/.test(name) && !/[A-Za-z]/.test(name)
     ) || '';
   return { district, locality };
 }
