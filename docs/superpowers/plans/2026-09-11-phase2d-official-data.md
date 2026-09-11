@@ -1000,11 +1000,11 @@ async function reverseGeocode({ lat, lng }) {
     `&lat=${lat}&lon=${lng}`;
   const { address = {} } = await getJson(url);
   const district = String(address.county || address.state_district || '').replace(/^อำเภอ/, '').trim();
-  // ใช้เฉพาะชื่อที่เป็นภาษาไทยล้วน บางที่ใน OpenStreetMap มีแต่ชื่ออังกฤษ
+  // ใช้เฉพาะชื่อหมู่บ้านที่อยู่ใกล้จริง (village, hamlet) ไม่ใช้ town หรือ municipality
+  // เพราะสองช่องนั้นเป็นชื่อเมืองที่อาจอยู่ไกลหลายกิโลเมตรหรือคนละอำเภอ เช่น จุดในอำเภอหาดใหญ่ได้ town เป็นเขารูปช้าง
+  // และใช้เฉพาะชื่อที่เป็นภาษาไทยล้วน บางที่ใน OpenStreetMap มีแต่ชื่ออังกฤษ
   const locality =
-    [address.village, address.hamlet, address.suburb, address.quarter, address.town].find(
-      (name) => name && /[ก-๙]/.test(name) && !/[A-Za-z]/.test(name)
-    ) || '';
+    [address.village, address.hamlet].find((name) => name && /[ก-๙]/.test(name) && !/[A-Za-z]/.test(name)) || '';
   return { district, locality };
 }
 
