@@ -12,9 +12,12 @@ import RiskBadge from '../components/RiskBadge';
 import VerificationBadge from '../components/VerificationBadge';
 import Disclaimer from '../components/Disclaimer';
 import EmergencyButton from '../components/EmergencyButton';
+import ConditionsCard from '../components/ConditionsCard';
 import { useRiskPoints } from '../hooks/useRiskPoints';
 import { useFavorites } from '../hooks/useFavorites';
+import { useLiveConditions } from '../hooks/useLiveConditions';
 import { summarizeIncidents, describeHours } from '../utils/format';
+import { conditionsNeededFor } from '../utils/conditions';
 import { SEVERITY_LABELS, HAZARD_TYPES } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
@@ -35,6 +38,9 @@ export default function RiskDetailScreen({ route }) {
   const { findPointById } = useRiskPoints();
   const { isFavorite, toggleFavorite } = useFavorites();
   const point = findPointById(pointId);
+  // ชายหาดดูคลื่น น้ำตกดูฝน จุดอื่นไม่ดึงอะไร (utils/conditions.js)
+  // เรียกก่อน return ตอนหาจุดไม่เจอ เพราะ React ห้ามเรียก hook แบบมีเงื่อนไข
+  const conditions = useLiveConditions(point ? point.coordinate : null, conditionsNeededFor(point));
 
   // กันกรณีหาจุดไม่เจอ เช่น ผู้ใช้ลบจุดที่บันทึกเองไปแล้วแต่ยังเปิดหน้านี้ค้างอยู่
   if (!point) {
@@ -79,6 +85,8 @@ export default function RiskDetailScreen({ route }) {
 
         {/* บอกก่อนที่ผู้ใช้จะอ่านสถิติ ว่าข้อมูลจุดนี้เชื่อถือได้แค่ไหน */}
         <Disclaimer variant={point.verified ? 'verified' : 'unverified'} />
+
+        <ConditionsCard waves={conditions.waves} rain={conditions.rain} isLoading={conditions.isLoading} />
 
         <Text style={styles.sectionTitle}>สถิติย้อนหลัง</Text>
         <Text style={styles.summary}>{summarizeIncidents(point.incidents)}</Text>

@@ -20,6 +20,8 @@ export const COLORS = {
   /** สีเตือน ใช้กับแถบ disclaimer และป้าย "ยังไม่ยืนยัน" */
   warningBackground: '#FEF6DC',
   warningBorder: '#F0C33C',
+  /** ตัวอักษรระดับ "ระวัง" เช่น คลื่นเล็กน้อย ฝนปานกลาง (ส้มเข้มพออ่านบนพื้นขาว) */
+  caution: '#E65100',
 
   danger: '#D32F2F',
   white: '#FFFFFF',

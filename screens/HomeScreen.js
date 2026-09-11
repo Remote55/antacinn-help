@@ -19,8 +19,11 @@ import Disclaimer from '../components/Disclaimer';
 import { useRiskPoints } from '../hooks/useRiskPoints';
 import { usePlaces } from '../hooks/usePlaces';
 import { useFavorites } from '../hooks/useFavorites';
+import { useLiveConditions } from '../hooks/useLiveConditions';
 import { summarizeSeason } from '../utils/season';
 import { pickFavoritePoints } from '../utils/favorites';
+import { classifyWaves } from '../utils/conditions';
+import { CONDITIONS, CONDITIONS_DISCLAIMER } from '../constants/config';
 import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
 
 export default function HomeScreen({ navigation }) {
@@ -28,6 +31,11 @@ export default function HomeScreen({ navigation }) {
   const { allPoints, topRiskPoints, searchPoints } = useRiskPoints();
   const { places, searchPlaces } = usePlaces();
   const { favoriteIds } = useFavorites();
+
+  // คลื่นแถบหาดสมิหลา–ชลาทัศน์ แสดงแถบเตือนเฉพาะตอนคลื่นแรง (เอกสารออกแบบระยะที่ 2 ข้อ D3)
+  const beach = useLiveConditions(CONDITIONS.BEACH_COORDINATE, { waves: true });
+  const beachLevel = beach.waves ? classifyWaves(beach.waves.heightM) : null;
+  const isBeachRough = beachLevel !== null && (beachLevel.id === 'rough' || beachLevel.id === 'danger');
 
   // หัวข้อและเนื้อความของแถบฤดูกาลมาจากข้อมูลชุดเดียวกัน (utils/season.js) จึงไม่ขัดกัน
   const season = summarizeSeason(allPoints, new Date().getMonth() + 1);
@@ -101,6 +109,17 @@ export default function HomeScreen({ navigation }) {
           </View>
         ) : (
           <>
+            {isBeachRough && (
+              <View style={styles.waveBanner}>
+                <Text style={styles.waveBannerTitle}>
+                  🌊 คลื่นแถบหาดสมิหลา–ชลาทัศน์ตอนนี้ประมาณ {beach.waves.heightM.toFixed(1)} ม. · {beachLevel.label}
+                </Text>
+                <Text style={styles.waveBannerText}>
+                  {beachLevel.advice} · {CONDITIONS_DISCLAIMER}
+                </Text>
+              </View>
+            )}
+
             {/* แถบสรุปความเสี่ยงประจำเดือน ปรับข้อความตามข้อมูลจริง */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{season.title}</Text>
@@ -205,5 +224,24 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: FONT_SIZES.body,
     color: COLORS.textMuted,
+  },
+  waveBanner: {
+    backgroundColor: COLORS.warningBackground,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.danger,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    gap: SPACING.xs,
+  },
+  waveBannerTitle: {
+    fontSize: FONT_SIZES.body,
+    fontWeight: 'bold',
+    color: COLORS.danger,
+  },
+  waveBannerText: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.text,
+    lineHeight: 20,
   },
 });
