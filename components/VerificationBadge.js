@@ -10,33 +10,50 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import Icon from './Icon';
+import { COLORS, TEXT, RADIUS } from '../constants/theme';
 
 export default function VerificationBadge({ verified }) {
   if (verified) {
     return (
-      <View style={styles.verifiedBox}>
-        <Text style={styles.verifiedText}>✓ ข้อมูลทางการ</Text>
+      <View style={[styles.badge, styles.verified]}>
+        <Icon name="shield-checkmark" size={13} color={COLORS.primary} />
+        <Text style={[styles.text, styles.verifiedText]}>ข้อมูลทางการ</Text>
       </View>
     );
   }
-  return <Text style={styles.unverifiedText}>⚠️ ยังไม่ยืนยัน</Text>;
+  return (
+    <View style={[styles.badge, styles.unverified]}>
+      <Icon name="alert-circle-outline" size={13} color={COLORS.textMuted} />
+      <Text style={[styles.text, styles.unverifiedText]}>ยังไม่ยืนยัน</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  verifiedBox: {
-    backgroundColor: COLORS.verifiedBackground,
+  badge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: RADIUS.pill,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
+  },
+  verified: {
+    backgroundColor: COLORS.verifiedBackground,
+  },
+  unverified: {
+    backgroundColor: COLORS.page,
+  },
+  text: {
+    ...TEXT.caption,
+    lineHeight: 18,
   },
   verifiedText: {
-    fontSize: FONT_SIZES.small,
-    fontWeight: 'bold',
     color: COLORS.primary,
   },
   unverifiedText: {
-    fontSize: FONT_SIZES.small,
     color: COLORS.textMuted,
   },
 });

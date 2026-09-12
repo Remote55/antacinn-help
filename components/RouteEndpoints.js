@@ -1,30 +1,35 @@
 /**
- * แถบต้นทางและปลายทางของหน้าวางแผนเส้นทาง
+ * ช่องต้นทางและปลายทางของหน้าวางแผนเส้นทาง
  *
  * กดที่ช่องไหน หน้าจอจะเปิดรายการสถานที่ให้เลือกสำหรับช่องนั้น
- * ปุ่ม ⇅ สลับต้นทางกับปลายทาง (ขากลับ)
+ * ปุ่มลูกศรขึ้นลงสลับต้นทางกับปลายทาง (ขากลับ)
  */
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import Icon from './Icon';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
-function EndpointRow({ label, endpoint, isActive, isLocating, onPress }) {
+function EndpointRow({ label, icon, iconColor, endpoint, isActive, isLocating, onPress }) {
   let text = 'แตะเพื่อเลือก';
   if (isLocating) text = 'กำลังหาตำแหน่งของคุณ...';
-  else if (endpoint) text = `${endpoint.emoji || '📌'} ${endpoint.name}`;
+  else if (endpoint) text = endpoint.emoji ? `${endpoint.emoji} ${endpoint.name}` : endpoint.name;
 
   return (
     <Pressable
-      style={[styles.row, isActive && styles.rowActive]}
+      style={({ hovered }) => [styles.row, isActive ? styles.rowActive : hovered && styles.rowHovered]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${label}: ${text}`}
     >
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue} numberOfLines={1}>
-        {text}
-      </Text>
+      <Icon name={icon} size={18} color={iconColor} />
+      <View style={styles.rowText}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <Text style={styles.rowValue} numberOfLines={1}>
+          {text}
+        </Text>
+      </View>
+      <Icon name="chevron-down" size={16} color={COLORS.textMuted} />
     </Pressable>
   );
 }
@@ -41,12 +46,15 @@ export default function RouteEndpoints({
   onPressOrigin,
   onPressDestination,
   onSwap,
+  style,
 }) {
   return (
-    <View style={styles.box}>
+    <View style={[styles.box, style]}>
       <View style={styles.rows}>
         <EndpointRow
           label="ต้นทาง"
+          icon="radio-button-on"
+          iconColor={COLORS.userLocation}
           endpoint={origin}
           isActive={activeTarget === 'origin'}
           isLocating={isLocating}
@@ -54,18 +62,20 @@ export default function RouteEndpoints({
         />
         <EndpointRow
           label="ปลายทาง"
+          icon="location"
+          iconColor={COLORS.danger}
           endpoint={destination}
           isActive={activeTarget === 'destination'}
           onPress={onPressDestination}
         />
       </View>
       <Pressable
-        style={styles.swapButton}
+        style={({ hovered }) => [styles.swapButton, hovered && styles.rowHovered]}
         onPress={onSwap}
         accessibilityRole="button"
         accessibilityLabel="สลับต้นทางกับปลายทาง"
       >
-        <Text style={styles.swapText}>⇅</Text>
+        <Icon name="swap-vertical" size={20} color={COLORS.primary} />
       </Pressable>
     </View>
   );
@@ -76,38 +86,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.sm,
   },
   rows: {
     flex: 1,
-    gap: SPACING.xs,
+    gap: SPACING.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: 12,
     paddingVertical: SPACING.sm,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.card,
+    cursor: 'pointer',
+  },
+  rowHovered: {
+    borderColor: '#CBD3DE',
+    backgroundColor: COLORS.cardHover,
   },
   rowActive: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.primarySoft,
+  },
+  rowText: {
+    flex: 1,
   },
   rowLabel: {
-    width: 56,
-    fontSize: FONT_SIZES.small,
+    ...TEXT.caption,
     color: COLORS.textMuted,
   },
   rowValue: {
-    flex: 1,
-    fontSize: FONT_SIZES.body,
+    ...TEXT.bodyStrong,
     color: COLORS.text,
-    fontWeight: '600',
   },
   swapButton: {
     width: 44,
@@ -115,11 +128,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     borderWidth: 1,
     borderColor: COLORS.border,
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  swapText: {
-    fontSize: FONT_SIZES.title,
-    color: COLORS.primary,
+    cursor: 'pointer',
   },
 });

@@ -1,89 +1,92 @@
 /**
- * การ์ดแสดงจุดเสี่ยงหนึ่งจุด ใช้ในหน้าแรกและหน้าวางแผนเส้นทาง
+ * การ์ดแสดงจุดเสี่ยงหนึ่งจุด ใช้ในหน้าแรก หน้าวางแผนเส้นทาง และแผงรายการบนแผนที่
  *
- * แสดง: ไอคอนประเภท ชื่อจุด อำเภอ ป้ายคะแนน และระยะทาง (ถ้ามี)
+ * แสดง: ไอคอนประเภทอันตรายบนพื้นสีระดับความเสี่ยง ชื่อจุด อำเภอ ป้ายคะแนน ป้ายยืนยันข้อมูล
+ * และระยะทาง (ถ้ามี) — ดูสีกรอบไอคอนก็รู้ระดับความเสี่ยงได้ทันทีโดยไม่ต้องอ่าน
  */
 
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Card from './Card';
+import Icon from './Icon';
 import RiskBadge from './RiskBadge';
 import VerificationBadge from './VerificationBadge';
-import { HAZARD_TYPES } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { hazardFor } from '../utils/hazards';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
-/** หาไอคอนและป้ายชื่อของประเภทอันตราย */
-function getHazardInfo(typeId) {
-  return HAZARD_TYPES.find((h) => h.id === typeId) || { icon: '📍', label: 'ไม่ระบุ' };
-}
-
-export default function RiskPointCard({ point, distanceLabel, onPress }) {
-  const hazard = getHazardInfo(point.type);
+export default function RiskPointCard({ point, distanceLabel, onPress, style }) {
+  const hazard = hazardFor(point.type);
 
   return (
-    <Pressable
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      onPress={onPress}
-    >
+    <Card onPress={onPress} style={[styles.card, style]} accessibilityLabel={`${point.name} ${point.riskLevel.label}`}>
       <View style={styles.header}>
-        <Text style={styles.icon}>{hazard.icon}</Text>
-        <Text style={styles.name} numberOfLines={2}>
-          {point.name}
-        </Text>
-        {distanceLabel && <Text style={styles.distance}>{distanceLabel}</Text>}
+        <View style={[styles.iconTile, { backgroundColor: point.riskLevel.color }]}>
+          <Icon name={hazard.icon} size={20} color={point.riskLevel.textColor} />
+        </View>
+        <View style={styles.titleBox}>
+          <Text style={styles.name} numberOfLines={2}>
+            {point.name}
+          </Text>
+          <Text style={styles.meta} numberOfLines={1}>
+            {point.district} · {hazard.label}
+          </Text>
+        </View>
+        {distanceLabel ? <Text style={styles.distance}>{distanceLabel}</Text> : null}
       </View>
-
-      <Text style={styles.meta}>
-        {point.district} · {hazard.label}
-      </Text>
 
       <View style={styles.footer}>
         <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} hasStatistics={point.hasStatistics} />
         {/* บอกทุกจุดว่ายืนยันจากเอกสารทางการแล้วหรือยัง ไม่ให้เข้าใจผิดว่าเป็นสถิติทางการ */}
         <VerificationBadge verified={point.verified} />
       </View>
-    </Pressable>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    marginBottom: SPACING.sm,
-    gap: SPACING.xs,
-  },
-  cardPressed: {
-    backgroundColor: COLORS.surface,
+    gap: 12,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: SPACING.sm,
+    gap: 12,
   },
-  icon: {
-    fontSize: FONT_SIZES.title,
+  iconTile: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleBox: {
+    flex: 1,
+    gap: 2,
   },
   name: {
-    flex: 1,
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: '600',
+    ...TEXT.h3,
+    fontSize: 16,
     color: COLORS.text,
   },
-  distance: {
-    fontSize: FONT_SIZES.small,
+  meta: {
+    ...TEXT.small,
     color: COLORS.textMuted,
   },
-  meta: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.textMuted,
+  distance: {
+    ...TEXT.smallStrong,
+    color: COLORS.primary,
+    backgroundColor: COLORS.primarySoft,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: RADIUS.pill,
+    overflow: 'hidden',
   },
   footer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: SPACING.sm,
-    marginTop: SPACING.xs,
+    // การ์ดยืดสูงเท่าใบอื่นในแถว (components/Grid.js) ป้ายจึงชิดล่างเสมอ
+    marginTop: 'auto',
   },
 });

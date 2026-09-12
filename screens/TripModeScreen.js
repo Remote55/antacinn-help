@@ -12,6 +12,9 @@
  * ถ้าเริ่มจากหน้าวางแผนเส้นทาง จะรู้ด้วยว่าผู้ใช้อยู่ตรงไหนของเส้นทาง
  * และบอก "จุดเสี่ยงถัดไป อีกกี่กิโลเมตรตามเส้นทาง" (เอกสารบทที่ 5.2)
  *
+ * จอกว้าง: แผงซ้ายมีสถานะ การเตือน ปุ่มควบคุม และประวัติ แผนที่ใหญ่ทางขวา (เหมาะกับฉายตอนนำเสนอ)
+ * มือถือ: เรียงลงมา แผนที่อยู่กลางจอ
+ *
  * ข้อจำกัด: ต้องเปิดแอปค้างไว้ เพราะ Expo Go ไม่รองรับการติดตามตำแหน่งแบบเบื้องหลัง
  * หน้าจอนี้จึงสั่งไม่ให้จอดับเองตลอดเวลาที่เปิดอยู่ (useScreenAwake)
  */
@@ -23,12 +26,16 @@ import AppMap from '../components/AppMap';
 import TripAlertCard from '../components/TripAlertCard';
 import NextRiskPanel from '../components/NextRiskPanel';
 import SimulationControls from '../components/SimulationControls';
+import BackLink from '../components/BackLink';
+import Button from '../components/Button';
+import Icon from '../components/Icon';
 import { useRiskPoints } from '../hooks/useRiskPoints';
 import { useUserLocation } from '../hooks/useUserLocation';
 import { useSimulatedLocation } from '../hooks/useSimulatedLocation';
 import { useTripAlerts } from '../hooks/useTripAlerts';
 import { useVoiceAlerts } from '../hooks/useVoiceAlerts';
 import { useScreenAwake } from '../hooks/useScreenAwake';
+import { useLayout } from '../hooks/useLayout';
 import { findRiskPointsAlongRoute } from '../utils/routeAnalysis';
 import { describeRouteStatus } from '../utils/routeProgress';
 import { buildAlertMessage, buildHeadsUpMessage } from '../utils/alertMessage';
@@ -36,12 +43,24 @@ import { haversineMeters } from '../utils/geo';
 import { pointToMarker } from '../utils/mapMarkers';
 import { formatDistance } from '../utils/format';
 import { DISTANCE, DEFAULT_REGION } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS, LAYOUT } from '../constants/theme';
 
 /** เลื่อนกล้องตามผู้ใช้เมื่อขยับห่างกลางจอเกินระยะนี้ ไม่เลื่อนทุกจังหวะให้แผนที่กระตุก */
 const RECENTER_DISTANCE_M = 150;
 
+/** ข้อความสั้นใต้แถบสถานะ (สีเทาหรือสีแดงตามความสำคัญ) */
+function Note({ icon, text, tone = 'muted' }) {
+  const color = tone === 'danger' ? COLORS.dangerDark : COLORS.textMuted;
+  return (
+    <View style={styles.note}>
+      <Icon name={icon} size={16} color={color} />
+      <Text style={[styles.noteText, { color }]}>{text}</Text>
+    </View>
+  );
+}
+
 export default function TripModeScreen({ navigation, route }) {
+  const { isWide } = useLayout();
   const params = (route && route.params) || {};
   const mode = params.mode === 'simulate' ? 'simulate' : 'gps';
   const routeCoordinates = params.routeCoordinates || null;
@@ -140,93 +159,140 @@ export default function TripModeScreen({ navigation, route }) {
 
   const errorMessage = mode === 'gps' ? gps.errorMessage : null;
 
-  return (
-    <SafeAreaView style={styles.screen} edges={['bottom']}>
-      <View style={styles.statusBar}>
-        <View style={styles.statusTextBox}>
-          <Text style={styles.statusText}>กำลังเฝ้าระวัง {trip.nearbyPoints.length} จุด</Text>
-          <Text style={styles.modeText} numberOfLines={1}>
-            {mode === 'simulate' ? 'จำลองการเดินทาง' : 'GPS'}
-            {routeLabel ? ` · ${routeLabel}` : ''}
-          </Text>
-        </View>
-        <Pressable style={styles.iconButton} onPress={voice.testVoice} accessibilityLabel="ทดสอบเสียงเตือน">
-          <Text style={styles.iconButtonText}>ทดสอบเสียง</Text>
-        </Pressable>
-        <Pressable
-          style={styles.iconButton}
-          onPress={voice.toggleMute}
-          accessibilityLabel={voice.isMuted ? 'เปิดเสียงเตือน' : 'ปิดเสียงเตือน'}
-        >
-          <Text style={styles.muteText}>{voice.isMuted ? '🔇' : '🔊'}</Text>
-        </Pressable>
+  const statusBar = (
+    <View style={[styles.statusBar, isWide && styles.statusBarWide]}>
+      <View style={styles.liveDot} />
+      <View style={styles.statusTextBox}>
+        <Text style={styles.statusText}>กำลังเฝ้าระวัง {trip.nearbyPoints.length} จุด</Text>
+        <Text style={styles.modeText} numberOfLines={1}>
+          {mode === 'simulate' ? 'จำลองการเดินทาง' : 'ตำแหน่งจริงจาก GPS'}
+          {routeLabel ? ` · ${routeLabel}` : ''}
+        </Text>
       </View>
+      <Button variant="secondary" size="sm" icon="volume-medium-outline" title="ทดสอบเสียง" onPress={voice.testVoice} />
+      <Pressable
+        style={({ hovered }) => [styles.iconButton, hovered && styles.iconButtonHovered]}
+        onPress={voice.toggleMute}
+        accessibilityRole="button"
+        accessibilityLabel={voice.isMuted ? 'เปิดเสียงเตือน' : 'ปิดเสียงเตือน'}
+      >
+        <Icon name={voice.isMuted ? 'volume-mute' : 'volume-high'} size={20} color={COLORS.primary} />
+      </Pressable>
+    </View>
+  );
 
+  const notes = (
+    <>
       {voice.hasThaiVoice === false && (
-        <Text style={styles.noteText}>เครื่องนี้ไม่มีเสียงภาษาไทย แอปจะเตือนด้วยภาพและการสั่นแทน</Text>
+        <Note icon="chatbubble-ellipses-outline" text="เครื่องนี้ไม่มีเสียงภาษาไทย แอปจะเตือนด้วยภาพและการสั่นแทน" />
       )}
       {canKeepAwake === false && (
-        <Text style={styles.noteText}>
-          เครื่องนี้สั่งไม่ให้จอดับเองไม่ได้ ถ้าจอดับการเตือนจะหยุด ควรตั้งเวลาปิดหน้าจอให้นานขึ้นระหว่างเดินทาง
-        </Text>
+        <Note
+          icon="phone-portrait-outline"
+          text="เครื่องนี้สั่งไม่ให้จอดับเองไม่ได้ ถ้าจอดับการเตือนจะหยุด ควรตั้งเวลาปิดหน้าจอให้นานขึ้นระหว่างเดินทาง"
+        />
       )}
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      {errorMessage && <Note icon="alert-circle-outline" text={errorMessage} tone="danger" />}
       {/* ใช้ GPS ไม่ได้แต่มีเส้นทางอยู่แล้ว เสนอให้ดูการเตือนแบบจำลองแทน */}
       {errorMessage && routeCoordinates && (
-        <Pressable style={styles.fallbackButton} onPress={() => navigation.setParams({ mode: 'simulate' })}>
-          <Text style={styles.fallbackButtonText}>▶ ใช้โหมดจำลองการเดินทางแทน</Text>
-        </Pressable>
-      )}
-      {!location && !errorMessage && <Text style={styles.noteText}>กำลังรอสัญญาณ GPS...</Text>}
-
-      {currentAlert && liveDistanceM !== null && (
-        <TripAlertCard
-          point={currentAlert.point}
-          liveDistanceM={liveDistanceM}
-          onPress={() => navigation.navigate('RiskDetail', { pointId: currentAlert.point.id })}
-          onDismiss={() => setCurrentAlert(null)}
+        <Button
+          variant="secondary"
+          icon="play"
+          title="ใช้โหมดจำลองการเดินทางแทน"
+          onPress={() => navigation.setParams({ mode: 'simulate' })}
         />
       )}
+      {!location && !errorMessage && <Note icon="radio-outline" text="กำลังรอสัญญาณ GPS..." />}
+    </>
+  );
 
-      <NextRiskPanel status={routeStatus} />
+  const alertCard = currentAlert && liveDistanceM !== null && (
+    <TripAlertCard
+      point={currentAlert.point}
+      liveDistanceM={liveDistanceM}
+      onPress={() => navigation.navigate('RiskDetail', { pointId: currentAlert.point.id })}
+      onDismiss={() => setCurrentAlert(null)}
+    />
+  );
 
-      <View style={styles.mapContainer}>
-        <AppMap region={region} markers={markers} polyline={routeCoordinates} userLocation={location} />
+  const controls = mode === 'simulate' && (
+    <SimulationControls
+      isPlaying={simulation.isPlaying}
+      isFinished={simulation.isFinished}
+      speedUp={simulation.speedUp}
+      progressM={simulation.progressM}
+      totalM={simulation.totalM}
+      onPlay={playSimulation}
+      onPause={simulation.pause}
+      onRestart={restartSimulation}
+      onSpeedChange={simulation.setSpeedUp}
+    />
+  );
+
+  const history = (
+    <View style={styles.history}>
+      <Text style={styles.historyTitle}>แจ้งเตือนไปแล้ว</Text>
+      {trip.history.length === 0 ? (
+        <Text style={styles.emptyText}>ยังไม่มีการแจ้งเตือนในทริปนี้</Text>
+      ) : (
+        trip.history.map((alert, index) => (
+          <View key={`${alert.point.id}-${index}`} style={styles.historyRow}>
+            <View style={[styles.historyDot, { backgroundColor: alert.point.riskLevel.color }]} />
+            <Text style={styles.historyName} numberOfLines={1}>
+              {alert.point.name}
+            </Text>
+            <Text style={styles.historyDistance}>{formatDistance(alert.distanceM)}</Text>
+          </View>
+        ))
+      )}
+    </View>
+  );
+
+  const stopButton = (
+    <Button variant="danger" size="lg" icon="stop-circle-outline" title="หยุดโหมดเดินทาง" onPress={() => navigation.goBack()} />
+  );
+
+  const map = <AppMap region={region} markers={markers} polyline={routeCoordinates} userLocation={location} />;
+
+  if (isWide) {
+    return (
+      <View style={styles.wideScreen}>
+        <View style={styles.sidePanel}>
+          <ScrollView contentContainerStyle={styles.panelContent}>
+            <BackLink label="กลับไปวางแผนเส้นทาง" />
+            <Text style={styles.panelTitle} accessibilityRole="header">
+              โหมดเดินทาง
+            </Text>
+            {statusBar}
+            {notes}
+            {alertCard}
+            <NextRiskPanel status={routeStatus} />
+            {controls}
+            {history}
+          </ScrollView>
+          <View style={styles.panelFooter}>{stopButton}</View>
+        </View>
+        <View style={styles.mapArea}>{map}</View>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.screen} edges={['bottom']}>
+      {statusBar}
+      <View style={styles.narrowStack}>
+        {notes}
+        {alertCard}
+        <NextRiskPanel status={routeStatus} />
       </View>
 
-      {mode === 'simulate' && (
-        <SimulationControls
-          isPlaying={simulation.isPlaying}
-          isFinished={simulation.isFinished}
-          speedUp={simulation.speedUp}
-          progressM={simulation.progressM}
-          totalM={simulation.totalM}
-          onPlay={playSimulation}
-          onPause={simulation.pause}
-          onRestart={restartSimulation}
-          onSpeedChange={simulation.setSpeedUp}
-        />
-      )}
+      <View style={styles.mapNarrow}>{map}</View>
 
-      <ScrollView style={styles.historyBox} contentContainerStyle={styles.history}>
-        <Text style={styles.historyTitle}>แจ้งเตือนไปแล้ว</Text>
-        {trip.history.length === 0 ? (
-          <Text style={styles.emptyText}>ยังไม่มีการแจ้งเตือนในทริปนี้</Text>
-        ) : (
-          trip.history.map((alert, index) => (
-            <View key={`${alert.point.id}-${index}`} style={styles.historyRow}>
-              <Text style={styles.historyName} numberOfLines={1}>
-                {alert.point.name}
-              </Text>
-              <Text style={styles.historyDistance}>{formatDistance(alert.distanceM)}</Text>
-            </View>
-          ))
-        )}
-      </ScrollView>
+      {controls && <View style={styles.controlsNarrow}>{controls}</View>}
 
-      <Pressable style={styles.stopButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.stopButtonText}>หยุดโหมดเดินทาง</Text>
-      </Pressable>
+      <ScrollView style={styles.historyBox}>{history}</ScrollView>
+
+      <View style={styles.footerNarrow}>{stopButton}</View>
     </SafeAreaView>
   );
 }
@@ -234,115 +300,146 @@ export default function TripModeScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.page,
+  },
+  wideScreen: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  sidePanel: {
+    width: LAYOUT.SIDE_PANEL_WIDTH + 20,
+    backgroundColor: COLORS.card,
+    borderRightWidth: 1,
+    borderRightColor: COLORS.border,
+  },
+  panelContent: {
+    padding: SPACING.lg,
+    gap: 12,
+  },
+  panelTitle: {
+    ...TEXT.h1,
+    color: COLORS.text,
+  },
+  panelFooter: {
+    padding: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.divider,
+  },
+  mapArea: {
+    flex: 1,
   },
   statusBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    padding: SPACING.md,
+    backgroundColor: COLORS.card,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  statusBarWide: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+  },
+  liveDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.userLocation,
+    boxShadow: '0 0 0 4px rgba(30, 136, 229, 0.2)',
   },
   statusTextBox: {
     flex: 1,
   },
   statusText: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    ...TEXT.bodyStrong,
     color: COLORS.text,
   },
   modeText: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
   },
   iconButton: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.background,
-  },
-  iconButtonText: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.text,
-  },
-  muteText: {
-    fontSize: FONT_SIZES.title,
-  },
-  noteText: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.textMuted,
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.sm,
-  },
-  errorText: {
-    fontSize: FONT_SIZES.body,
-    color: COLORS.danger,
-    padding: SPACING.md,
-  },
-  fallbackButton: {
-    marginHorizontal: SPACING.md,
-    padding: SPACING.sm,
-    borderRadius: RADIUS.md,
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
     borderWidth: 1,
     borderColor: COLORS.primary,
     alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
   },
-  fallbackButtonText: {
-    fontSize: FONT_SIZES.body,
-    color: COLORS.primary,
-    fontWeight: '600',
+  iconButtonHovered: {
+    backgroundColor: COLORS.primarySoft,
   },
-  mapContainer: {
+  note: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  noteText: {
+    flex: 1,
+    ...TEXT.small,
+  },
+  narrowStack: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  mapNarrow: {
     flex: 1,
     minHeight: 200,
     marginTop: SPACING.sm,
   },
+  controlsNarrow: {
+    backgroundColor: COLORS.card,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
   historyBox: {
     maxHeight: 140,
+    backgroundColor: COLORS.card,
   },
   history: {
     padding: SPACING.md,
+    gap: SPACING.xs,
   },
   historyTitle: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    ...TEXT.h3,
     color: COLORS.text,
-    marginBottom: SPACING.sm,
   },
   historyRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: SPACING.sm,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    gap: SPACING.sm,
+    borderBottomColor: COLORS.divider,
+  },
+  historyDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   historyName: {
     flex: 1,
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.text,
   },
   historyDistance: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
   },
   emptyText: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.textMuted,
   },
-  stopButton: {
-    backgroundColor: COLORS.danger,
-    margin: SPACING.md,
+  footerNarrow: {
     padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    alignItems: 'center',
-  },
-  stopButtonText: {
-    color: COLORS.white,
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    backgroundColor: COLORS.card,
   },
 });

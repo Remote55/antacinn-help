@@ -7,13 +7,32 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import Icon from './Icon';
+import SearchBox from './SearchBox';
 import { searchPlaces } from '../utils/places';
 import { MY_LOCATION_NAME } from '../utils/routeRequest';
 import { DISTANCE } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
 const RADIUS_LABEL = `${DISTANCE.PLACE_RISK_RADIUS / 1000} กม.`;
+
+function PlaceRow({ leading, name, meta, onPress }) {
+  return (
+    <Pressable
+      style={({ hovered, pressed }) => [styles.row, (hovered || pressed) && styles.rowHovered]}
+      onPress={onPress}
+      accessibilityRole="button"
+    >
+      <View style={styles.leading}>{leading}</View>
+      <View style={styles.rowText}>
+        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.meta}>{meta}</Text>
+      </View>
+      <Icon name="chevron-forward" size={16} color={COLORS.textMuted} />
+    </Pressable>
+  );
+}
 
 /**
  * @param places สถานที่จาก usePlaces
@@ -28,46 +47,31 @@ export default function PlacePicker({ title, places, showMyLocation, onSelectPla
     <View style={styles.box}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{title}</Text>
-        <Pressable onPress={onCancel} hitSlop={8} accessibilityRole="button">
+        <Pressable onPress={onCancel} hitSlop={8} accessibilityRole="button" style={styles.cancel}>
           <Text style={styles.cancelText}>ยกเลิก</Text>
         </Pressable>
       </View>
 
-      <TextInput
-        style={styles.searchBox}
-        placeholder="พิมพ์ชื่อสถานที่ เช่น สมิหลา"
-        placeholderTextColor={COLORS.textMuted}
-        value={query}
-        onChangeText={setQuery}
-        autoFocus
-      />
+      <SearchBox value={query} onChangeText={setQuery} placeholder="พิมพ์ชื่อสถานที่ เช่น สมิหลา" autoFocus />
 
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.list}>
         {showMyLocation && !isSearching && (
-          <Pressable style={styles.row} onPress={onSelectMyLocation} accessibilityRole="button">
-            <Text style={styles.emoji}>📍</Text>
-            <View style={styles.rowText}>
-              <Text style={styles.name}>{MY_LOCATION_NAME}</Text>
-              <Text style={styles.meta}>ใช้ตำแหน่งจาก GPS ของเครื่อง</Text>
-            </View>
-          </Pressable>
+          <PlaceRow
+            leading={<Icon name="locate" size={20} color={COLORS.userLocation} />}
+            name={MY_LOCATION_NAME}
+            meta="ใช้ตำแหน่งจาก GPS ของเครื่อง"
+            onPress={onSelectMyLocation}
+          />
         )}
 
         {results.map((place) => (
-          <Pressable
+          <PlaceRow
             key={place.id}
-            style={styles.row}
+            leading={<Text style={styles.emoji}>{place.emoji}</Text>}
+            name={place.name}
+            meta={`อ.${place.district} · จุดเสี่ยงรอบ ${RADIUS_LABEL} ${place.risk.count} จุด`}
             onPress={() => onSelectPlace(place)}
-            accessibilityRole="button"
-          >
-            <Text style={styles.emoji}>{place.emoji}</Text>
-            <View style={styles.rowText}>
-              <Text style={styles.name}>{place.name}</Text>
-              <Text style={styles.meta}>
-                {place.district} · จุดเสี่ยงรอบ {RADIUS_LABEL} {place.risk.count} จุด
-              </Text>
-            </View>
-          </Pressable>
+          />
         ))}
 
         {isSearching && results.length === 0 && (
@@ -83,8 +87,7 @@ export default function PlacePicker({ title, places, showMyLocation, onSelectPla
 const styles = StyleSheet.create({
   box: {
     flex: 1,
-    padding: SPACING.md,
-    gap: SPACING.sm,
+    gap: 12,
   },
   headerRow: {
     flexDirection: 'row',
@@ -92,21 +95,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: FONT_SIZES.title,
-    fontWeight: 'bold',
+    ...TEXT.h2,
     color: COLORS.text,
+  },
+  cancel: {
+    cursor: 'pointer',
   },
   cancelText: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.bodyStrong,
     color: COLORS.primary,
-  },
-  searchBox: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    fontSize: FONT_SIZES.body,
-    color: COLORS.text,
   },
   list: {
     paddingBottom: SPACING.xl,
@@ -114,28 +111,40 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.md,
+    cursor: 'pointer',
+  },
+  rowHovered: {
+    backgroundColor: COLORS.page,
+  },
+  leading: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.page,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emoji: {
-    fontSize: FONT_SIZES.title,
+    fontSize: 20,
+    lineHeight: 26,
   },
   rowText: {
     flex: 1,
   },
   name: {
-    fontSize: FONT_SIZES.body,
-    fontWeight: '600',
+    ...TEXT.bodyStrong,
     color: COLORS.text,
   },
   meta: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
   },
   emptyText: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.textMuted,
     paddingVertical: SPACING.md,
   },

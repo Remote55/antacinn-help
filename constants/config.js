@@ -111,10 +111,11 @@ export const RISK_LEVELS = [
 
 /** ประเภทอันตราย ใช้ทั้งในตัวกรองและในฟอร์มบันทึกจุด */
 export const HAZARD_TYPES = [
-  { id: 'drowning', label: 'จมน้ำ',       icon: '🌊', spokenAdvice: 'อย่าลงเล่นน้ำเมื่อคลื่นแรง' },
-  { id: 'crash',    label: 'อุบัติเหตุรถ', icon: '🚗', spokenAdvice: 'ลดความเร็ว' },
-  { id: 'fall',     label: 'ลื่น/ตก',      icon: '⛰️', spokenAdvice: 'ระวังลื่น' },
-  { id: 'crime',    label: 'อาชญากรรม',   icon: '👤', spokenAdvice: 'ระวังทรัพย์สิน' },
+  // icon = ชื่อไอคอนในชุด Ionicons (components/Icon.js) ใช้แทน emoji ที่หน้าตาต่างกันตามเครื่อง
+  { id: 'drowning', label: 'จมน้ำ',       icon: 'water-outline',         spokenAdvice: 'อย่าลงเล่นน้ำเมื่อคลื่นแรง' },
+  { id: 'crash',    label: 'อุบัติเหตุรถ', icon: 'car-outline',           spokenAdvice: 'ลดความเร็ว' },
+  { id: 'fall',     label: 'ลื่น/ตก',      icon: 'trending-down-outline', spokenAdvice: 'ระวังลื่น' },
+  { id: 'crime',    label: 'อาชญากรรม',   icon: 'finger-print-outline',  spokenAdvice: 'ระวังทรัพย์สิน' },
 ];
 
 /** หมวดของจุดเสี่ยง */

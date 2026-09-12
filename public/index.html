@@ -37,6 +37,88 @@
         flex: 1;
       }
     </style>
+
+    <!-- หน้าตาเฉพาะเว็บของ AntacinnHelp (ส่วนที่ React Native ตั้งค่าเองไม่ได้) -->
+    <style id="antacinn-web">
+      /* สีเดียวกับหน้าจอระหว่างโหลดฟอนต์ (COLORS.primary) ไม่ให้จอกระพริบขาวก่อนแอปขึ้น */
+      html,
+      body {
+        background: #1b3a5c;
+      }
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* แถบเลื่อนบางแบบเว็บทั่วไป แทนแถบหนาที่มีลูกศรของ Windows */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #c5cdd8 transparent;
+      }
+      *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      *::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      *::-webkit-scrollbar-thumb {
+        background-color: #c5cdd8;
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background-clip: padding-box;
+      }
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: #a9b4c2;
+      }
+
+      /* ผู้ใช้คีย์บอร์ดเห็นว่าอยู่ที่ปุ่มไหน (ช่องพิมพ์ไม่ต้อง กรอบของช่องเปลี่ยนเป็นสีกรมท่าบอกอยู่แล้ว) */
+      :focus-visible:not(input):not(textarea) {
+        outline: 3px solid rgba(27, 58, 92, 0.45);
+        outline-offset: 2px;
+      }
+      input:focus,
+      textarea:focus {
+        outline: none;
+      }
+
+      /* แผนที่ Leaflet: ใช้ฟอนต์เดียวกับแอป ลดความสดของแผ่นแผนที่ให้หมุดสีความเสี่ยงเด่นขึ้น */
+      .leaflet-container {
+        font-family: 'IBMPlexSansThai_400Regular', system-ui, sans-serif;
+        background: #e8ecf1;
+      }
+      .leaflet-tile-pane {
+        filter: saturate(0.6) brightness(1.03);
+      }
+      .leaflet-overlay-pane path.antacinn-marker {
+        filter: drop-shadow(0 1px 2px rgba(16, 24, 40, 0.35));
+      }
+      .leaflet-tooltip {
+        font-family: 'IBMPlexSansThai_600SemiBold', system-ui, sans-serif;
+        font-size: 13px;
+        color: #132033;
+        border: none;
+        border-radius: 8px;
+        padding: 4px 10px;
+        box-shadow: 0 6px 20px rgba(16, 24, 40, 0.16);
+      }
+      .leaflet-bar {
+        border: none !important;
+        border-radius: 12px !important;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(16, 24, 40, 0.12) !important;
+      }
+      .leaflet-bar a {
+        width: 36px !important;
+        height: 36px !important;
+        line-height: 36px !important;
+        color: #1b3a5c !important;
+      }
+      .leaflet-control-attribution {
+        font-size: 11px;
+      }
+    </style>
   </head>
 
   <body>

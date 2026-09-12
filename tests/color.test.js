@@ -46,19 +46,33 @@ for (const level of RISK_LEVELS) {
 
 /** คู่สีตัวอักษร/พื้นที่ใช้จริงในหน้าจอต่างๆ */
 const PAIRS_IN_USE = [
-  ['text', 'background'],
-  ['text', 'surface'],
+  ['text', 'page'],
+  ['text', 'card'],
   ['text', 'warningBackground'],
-  ['textMuted', 'background'],
-  ['textMuted', 'surface'],
-  ['caution', 'background'],
-  ['caution', 'surface'],
-  ['danger', 'background'],
-  ['danger', 'surface'],
-  ['primary', 'background'],
+  ['text', 'verifiedBackground'],
+  ['textSecondary', 'page'],
+  ['textSecondary', 'card'],
+  ['textSecondary', 'warningBackground'],
+  ['textSecondary', 'dangerSoft'],
+  ['textMuted', 'page'],
+  ['textMuted', 'card'],
+  ['textMuted', 'cardHover'],
+  ['caution', 'page'],
+  ['caution', 'card'],
+  ['danger', 'card'],
+  ['dangerDark', 'dangerSoft'],
+  ['dangerDark', 'card'],
+  ['primary', 'card'],
+  ['primary', 'page'],
+  ['primary', 'primarySoft'],
   ['primary', 'verifiedBackground'],
   ['white', 'primary'],
+  ['white', 'primaryHover'],
   ['white', 'danger'],
+  ['white', 'dangerDark'],
+  // ส่วนหัวสีกรมท่าของหน้าแรก
+  ['onPrimaryMuted', 'primary'],
+  ['accent', 'primary'],
 ];
 
 for (const [foreground, background] of PAIRS_IN_USE) {

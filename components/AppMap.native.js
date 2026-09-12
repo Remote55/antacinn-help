@@ -5,8 +5,9 @@
  * เวลารันบนเว็บ Metro จะข้ามไฟล์นี้ไปใช้ AppMap.web.js แทน
  *
  * props (ต้องเหมือนกันทั้งสองไฟล์ ห้ามแก้ไฟล์เดียว):
- *   region, markers, polyline, fitToPolyline, userLocation, highlight, onMarkerPress, style
+ *   region, markers, polyline, fitToPolyline, fitToMarkers, userLocation, highlight, onMarkerPress, style
  *   fitToPolyline = true ซูมให้เห็นเส้นทางทั้งเส้นทุกครั้งที่เส้นทางเปลี่ยน (ใช้ในหน้าวางแผนเส้นทาง)
+ *   fitToMarkers  = true ซูมให้เห็นหมุดครบทุกอัน (แผนที่ย่อในหน้าแรก)
  *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
  *   markers สร้างด้วย pointToMarker (utils/mapMarkers.js): { id, lat, lng, color, label, verified }
  */
@@ -24,6 +25,7 @@ export default function AppMap({
   markers = [],
   polyline = null,
   fitToPolyline = false,
+  fitToMarkers = false,
   userLocation = null,
   highlight = null,
   onMarkerPress,
@@ -41,6 +43,14 @@ export default function AppMap({
       { edgePadding: FIT_PADDING, animated: true }
     );
   }, [fitToPolyline, isMapReady, polyline]);
+
+  useEffect(() => {
+    if (!fitToMarkers || !isMapReady || !mapRef.current || markers.length < 2) return;
+    mapRef.current.fitToCoordinates(
+      markers.map((marker) => ({ latitude: marker.lat, longitude: marker.lng })),
+      { edgePadding: FIT_PADDING, animated: false }
+    );
+  }, [fitToMarkers, isMapReady, markers]);
 
   return (
     <MapView

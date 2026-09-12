@@ -10,15 +10,17 @@
  * (ทดสอบยืนยันแล้วเมื่อ 2026-09-05 ว่าใช้ได้จริง)
  *
  * props (ต้องเหมือนกันทั้งสองไฟล์ ห้ามแก้ไฟล์เดียว):
- *   region, markers, polyline, fitToPolyline, userLocation, highlight, onMarkerPress, style
+ *   region, markers, polyline, fitToPolyline, fitToMarkers, userLocation, highlight, onMarkerPress, style
  *   fitToPolyline = true ซูมให้เห็นเส้นทางทั้งเส้นทุกครั้งที่เส้นทางเปลี่ยน (ใช้ในหน้าวางแผนเส้นทาง)
+ *   fitToMarkers  = true ซูมให้เห็นหมุดครบทุกอัน (แผนที่ย่อในหน้าแรก) ส่ง markers ที่ useMemo ไว้
+ *                   ไม่อย่างนั้นแผนที่จะซูมกลับทุกครั้งที่หน้าจอวาดใหม่
  *   highlight = { lat, lng, label } หมุดสถานที่ที่ผู้ใช้เลือกดู แสดงชื่อค้างไว้
  *   markers สร้างด้วย pointToMarker (utils/mapMarkers.js): { id, lat, lng, color, label, verified }
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
@@ -70,6 +72,7 @@ export default function AppMap({
   markers = [],
   polyline = null,
   fitToPolyline = false,
+  fitToMarkers = false,
   userLocation = null,
   highlight = null,
   onMarkerPress,
@@ -81,6 +84,10 @@ export default function AppMap({
   const polylineRef = useRef(null);
   const userMarkerRef = useRef(null);
   const highlightRef = useRef(null);
+  // เก็บฟังก์ชันกดหมุดล่าสุดไว้ใน ref หน้าจอส่งฟังก์ชันใหม่มาทุกครั้งที่วาด
+  // ถ้าใส่ใน dependency ของ effect วาดหมุด หมุดจะถูกลบแล้ววาดใหม่ (และซูมใหม่) ทุกครั้งที่หน้าจอวาดใหม่
+  const onMarkerPressRef = useRef(onMarkerPress);
+  onMarkerPressRef.current = onMarkerPress;
 
   const [loadError, setLoadError] = useState(null);
 
@@ -105,10 +112,12 @@ export default function AppMap({
         // ถ้าหน้าจอถูกปิด (เช่น ออกจากโหมดเดินทาง) ก่อนภาพเคลื่อนไหวจบ ตัวจับเวลานั้นจะอ้างถึง
         // ส่วนของแผนที่ที่ถูกลบไปแล้วและ throw error (เจอตอนทดสอบ: TypeError อ่าน classList / _leaflet_pos ไม่ได้)
         // (Leaflet ปิดภาพเคลื่อนไหวนี้บน Android เป็นค่าเริ่มต้นอยู่แล้ว ผู้ใช้มือถือส่วนใหญ่จึงไม่เห็นความต่าง)
-        const map = L.map(containerRef.current, { zoomAnimation: false }).setView(
+        const map = L.map(containerRef.current, { zoomAnimation: false, zoomControl: false }).setView(
           [region.latitude, region.longitude],
           deltaToZoom(region.latitudeDelta)
         );
+        // ปุ่มซูมไว้มุมขวาบน มุมซ้ายบนเป็นที่ของป้ายชื่อหมุดที่เลือก มุมล่างเป็นคำอธิบายสัญลักษณ์และปุ่มตำแหน่งของฉัน
+        L.control.zoom({ position: 'topright', zoomInTitle: 'ซูมเข้า', zoomOutTitle: 'ซูมออก' }).addTo(map);
 
         L.tileLayer(OSM_TILES, {
           maxZoom: 19,
@@ -161,15 +170,25 @@ export default function AppMap({
         weight: marker.verified ? 3 : 2,
         fillColor: marker.color,
         fillOpacity: 1,
+        // ชื่อ class ให้ CSS ใน public/index.html ใส่เงาเฉพาะหมุด (ไม่ใส่กับเส้นทาง)
+        className: 'antacinn-marker',
       })
-        .bindTooltip(marker.label || '')
-        .on('click', () => onMarkerPress && onMarkerPress(marker.id))
+        .bindTooltip(marker.label || '', { direction: 'top', offset: [0, -8] })
+        .on('click', () => onMarkerPressRef.current && onMarkerPressRef.current(marker.id))
         .addTo(markerLayerRef.current);
     });
 
     // หมุดที่เพิ่งวาดใหม่จะทับจุดตำแหน่งผู้ใช้ ดึงจุดผู้ใช้ขึ้นมาบนสุดเสมอ
     if (userMarkerRef.current) userMarkerRef.current.bringToFront();
-  }, [isMapReady, markers, onMarkerPress]);
+
+    // เว้นขอบบนและล่างมากกว่า เพราะมีปุ่มและคำอธิบายสัญลักษณ์ลอยบังอยู่
+    if (fitToMarkers && markers.length > 1) {
+      mapRef.current.fitBounds(
+        L.latLngBounds(markers.map((marker) => [marker.lat, marker.lng])),
+        { paddingTopLeft: [32, 64], paddingBottomRight: [32, 88], animate: false }
+      );
+    }
+  }, [isMapReady, markers, fitToMarkers]);
 
   // วาดเส้นทางใหม่เมื่อเส้นทางเปลี่ยน
   useEffect(() => {
@@ -228,14 +247,16 @@ export default function AppMap({
 
     if (highlight) {
       highlightRef.current = L.circleMarker([highlight.lat, highlight.lng], {
-        radius: 11,
+        radius: 16,
         color: COLORS.primary,
         weight: 4,
         fillColor: COLORS.white,
         fillOpacity: 1,
       })
-        .bindTooltip(highlight.label || '', { permanent: true, direction: 'top', offset: [0, -10] })
+        .bindTooltip(highlight.label || '', { permanent: true, direction: 'top', offset: [0, -16] })
         .addTo(mapRef.current);
+      // วาดไว้ใต้หมุดจุดเสี่ยง เป็นวงล้อมรอบหมุด จึงยังเห็นสีระดับความเสี่ยงของจุดที่เลือก
+      highlightRef.current.bringToBack();
     }
   }, [isMapReady, highlight]);
 
@@ -274,16 +295,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.lg,
     gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.page,
     borderRadius: RADIUS.md,
   },
   fallbackTitle: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    ...TEXT.h3,
     color: COLORS.text,
   },
   fallbackText: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
     textAlign: 'center',
   },

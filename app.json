@@ -5,20 +5,24 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#1B3A5C"
     },
-    "assetBundlePatterns": ["**/*"],
-
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "AntacinnHelp ใช้ตำแหน่งของคุณเพื่อเตือนเมื่อกำลังเข้าใกล้จุดเสี่ยง และเพื่อแสดงตำแหน่งคุณบนแผนที่"
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#1B3A5C"
@@ -29,21 +33,20 @@
         "VIBRATE"
       ]
     },
-
     "web": {
       "bundler": "metro",
       "lang": "th",
       "description": "แผนที่เตือนจุดเสี่ยงสำหรับนักท่องเที่ยว หาดใหญ่–เมืองสงขลา รู้ก่อนไป ว่าตรงไหนต้องระวัง",
       "themeColor": "#1B3A5C"
     },
-
     "plugins": [
       [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "AntacinnHelp ใช้ตำแหน่งของคุณเพื่อเตือนเมื่อกำลังเข้าใกล้จุดเสี่ยง"
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

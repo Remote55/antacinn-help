@@ -4,14 +4,18 @@
  * ใช้ 2 ที่:
  *   - หน้าแผนที่: เลือกได้หลายอันพร้อมกัน เพื่อกรองหมุด
  *   - หน้าบันทึกจุด: ส่ง singleSelect เป็น true เพื่อให้เลือกได้ทีละอัน
+ *
+ * wrap = true  เรียงหลายบรรทัด (แผงข้างบนจอกว้าง ฟอร์มบันทึก)
+ * wrap = false เลื่อนแนวนอนบรรทัดเดียว (มือถือ ประหยัดที่บนจอ)
  */
 
 import React from 'react';
-import { Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import Chip from './Chip';
 import { HAZARD_TYPES } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { SPACING } from '../constants/theme';
 
-export default function FilterChips({ selectedIds, onChange, singleSelect = false }) {
+export default function FilterChips({ selectedIds, onChange, singleSelect = false, wrap = false, style }) {
   function toggle(typeId) {
     if (singleSelect) {
       onChange([typeId]);
@@ -25,50 +29,36 @@ export default function FilterChips({ selectedIds, onChange, singleSelect = fals
     }
   }
 
+  const chips = HAZARD_TYPES.map((hazard) => (
+    <Chip
+      key={hazard.id}
+      label={hazard.label}
+      icon={hazard.icon}
+      selected={selectedIds.includes(hazard.id)}
+      onPress={() => toggle(hazard.id)}
+    />
+  ));
+
+  if (wrap) {
+    return <View style={[styles.wrapRow, style]}>{chips}</View>;
+  }
+
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-      {HAZARD_TYPES.map((hazard) => {
-        const isSelected = selectedIds.includes(hazard.id);
-        return (
-          <Pressable
-            key={hazard.id}
-            style={[styles.chip, isSelected && styles.chipSelected]}
-            onPress={() => toggle(hazard.id)}
-          >
-            <Text style={[styles.label, isSelected && styles.labelSelected]}>
-              {hazard.icon} {hazard.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.scrollRow, style]}>
+      {chips}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  wrapRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  scrollRow: {
     gap: SPACING.sm,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-  },
-  chip: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.background,
-  },
-  chipSelected: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  label: {
-    fontSize: FONT_SIZES.body,
-    color: COLORS.text,
-  },
-  labelSelected: {
-    color: COLORS.white,
-    fontWeight: '600',
   },
 });

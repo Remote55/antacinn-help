@@ -7,15 +7,17 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Icon from './Icon';
 import { formatDistance } from '../utils/format';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
-export default function NextRiskPanel({ status }) {
+export default function NextRiskPanel({ status, style }) {
   if (!status) return null;
 
   if (status.kind === 'offRoute') {
     return (
-      <View style={[styles.panel, styles.warning]}>
+      <View style={[styles.panel, styles.warning, style]}>
+        <Icon name="git-branch-outline" size={20} color={COLORS.caution} />
         <Text style={styles.text}>
           ออกนอกเส้นทางที่วางแผนไว้ {formatDistance(status.offRouteM)} กำลังเตือนด้วยระยะเส้นตรงแทน
         </Text>
@@ -25,30 +27,35 @@ export default function NextRiskPanel({ status }) {
 
   if (status.kind === 'done') {
     return (
-      <View style={styles.panel}>
+      <View style={[styles.panel, style]}>
+        <Icon name="flag-outline" size={20} color={COLORS.primary} />
         <Text style={styles.text}>ผ่านจุดเสี่ยงบนเส้นทางครบแล้ว</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.panel}>
-      <Text style={styles.label}>จุดเสี่ยงถัดไป</Text>
-      <Text style={styles.name} numberOfLines={1}>
-        {status.point.name}
-      </Text>
-      <Text style={styles.distance}>อีก {formatDistance(status.remainingM)} ตามเส้นทาง</Text>
+    <View style={[styles.panel, style]}>
+      <Icon name="arrow-up-circle-outline" size={22} color={COLORS.primary} />
+      <View style={styles.textBox}>
+        <Text style={styles.label}>จุดเสี่ยงถัดไป</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {status.point.name}
+        </Text>
+      </View>
+      <Text style={styles.distance}>อีก {formatDistance(status.remainingM)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   panel: {
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.sm,
-    padding: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -56,22 +63,25 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.warningBackground,
     borderColor: COLORS.warningBorder,
   },
+  textBox: {
+    flex: 1,
+  },
   label: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.caption,
     color: COLORS.textMuted,
   },
   name: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    ...TEXT.bodyStrong,
     color: COLORS.text,
   },
   distance: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.bodyStrong,
     color: COLORS.primary,
-    fontWeight: '600',
+    marginLeft: SPACING.sm,
   },
   text: {
-    fontSize: FONT_SIZES.body,
+    flex: 1,
+    ...TEXT.body,
     color: COLORS.text,
   },
 });

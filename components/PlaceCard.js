@@ -7,128 +7,128 @@
  */
 
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Card from './Card';
+import Button from './Button';
 import RiskBadge from './RiskBadge';
 import { DISTANCE } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
 const RADIUS_LABEL = `${DISTANCE.PLACE_RISK_RADIUS / 1000} กม.`;
 
 /**
  * @param place สถานที่จาก usePlaces (มี risk แล้ว)
  * @param onShowMap กด "ดูบนแผนที่"
- * @param onNavigate กด "นำทางไปที่นี่"
- * @param style ใช้กำหนดความกว้างเมื่ออยู่ในแถวเลื่อนแนวนอน
+ * @param onNavigate กด "นำทาง"
+ * @param style ใช้กำหนดความกว้าง (แถวเลื่อนแนวนอนบนมือถือ หรือช่องในตารางบนจอกว้าง)
  */
 export default function PlaceCard({ place, onShowMap, onNavigate, style }) {
   const { count, highest } = place.risk;
 
   return (
-    <View style={[styles.card, style]}>
+    <Card style={[styles.card, style]}>
       <View style={styles.header}>
-        <Text style={styles.emoji}>{place.emoji}</Text>
+        <View style={styles.emojiTile}>
+          <Text style={styles.emoji}>{place.emoji}</Text>
+        </View>
         <View style={styles.titleBox}>
           <Text style={styles.name} numberOfLines={2}>
             {place.name}
           </Text>
-          <Text style={styles.district}>{place.district}</Text>
+          <Text style={styles.district}>อ.{place.district}</Text>
         </View>
       </View>
 
-      {count > 0 ? (
-        <View style={styles.riskRow}>
-          <Text style={styles.riskText}>
-            จุดเสี่ยงรอบ {RADIUS_LABEL} {count} จุด · สูงสุด
-          </Text>
-          <RiskBadge riskLevel={highest.riskLevel} score={highest.riskScore} hasStatistics={highest.hasStatistics} />
-        </View>
-      ) : (
-        <Text style={styles.noDataText}>ยังไม่มีข้อมูลจุดเสี่ยงในรัศมี {RADIUS_LABEL}</Text>
-      )}
+      <View style={styles.riskBox}>
+        {count > 0 ? (
+          <>
+            <Text style={styles.riskText}>
+              จุดเสี่ยงในรัศมี {RADIUS_LABEL} <Text style={styles.riskCount}>{count} จุด</Text>
+            </Text>
+            <View style={styles.highestRow}>
+              <Text style={styles.highestLabel}>สูงสุด</Text>
+              <RiskBadge riskLevel={highest.riskLevel} score={highest.riskScore} hasStatistics={highest.hasStatistics} />
+            </View>
+          </>
+        ) : (
+          <Text style={styles.noDataText}>ยังไม่มีข้อมูลจุดเสี่ยงในรัศมี {RADIUS_LABEL}</Text>
+        )}
+      </View>
 
       <View style={styles.buttonRow}>
-        <Pressable style={styles.secondaryButton} onPress={onShowMap} accessibilityRole="button">
-          <Text style={styles.secondaryText}>🗺️ ดูบนแผนที่</Text>
-        </Pressable>
-        <Pressable style={styles.primaryButton} onPress={onNavigate} accessibilityRole="button">
-          <Text style={styles.primaryText}>นำทางไปที่นี่</Text>
-        </Pressable>
+        <Button variant="secondary" size="sm" icon="map-outline" title="ดูบนแผนที่" onPress={onShowMap} style={styles.button} />
+        <Button variant="primary" size="sm" icon="navigate" title="นำทาง" onPress={onNavigate} style={styles.button} />
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    marginBottom: SPACING.sm,
-    gap: SPACING.sm,
+    gap: 12,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: SPACING.sm,
+    alignItems: 'center',
+    gap: 12,
+  },
+  emojiTile: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.page,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emoji: {
-    fontSize: FONT_SIZES.heading,
+    fontSize: 22,
+    lineHeight: 28,
   },
   titleBox: {
     flex: 1,
   },
   name: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: '600',
+    ...TEXT.h3,
+    fontSize: 16,
     color: COLORS.text,
   },
   district: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
   },
-  riskRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: SPACING.xs,
+  riskBox: {
+    // จองความสูงเท่ากันทุกใบ ปุ่มจึงอยู่แนวเดียวกันเมื่อเรียงเป็นตาราง
+    minHeight: 50,
+    gap: 4,
   },
   riskText: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
+    color: COLORS.textSecondary,
+  },
+  riskCount: {
+    ...TEXT.smallStrong,
     color: COLORS.text,
   },
+  highestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  highestLabel: {
+    ...TEXT.small,
+    color: COLORS.textMuted,
+  },
   noDataText: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
   },
   buttonRow: {
     flexDirection: 'row',
     gap: SPACING.sm,
+    // การ์ดยืดสูงเท่าใบอื่นในแถว (components/Grid.js) ปุ่มจึงชิดล่างเสมอ
+    marginTop: 'auto',
   },
-  secondaryButton: {
+  button: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-    paddingVertical: SPACING.sm,
-    alignItems: 'center',
-  },
-  secondaryText: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  primaryButton: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-    paddingVertical: SPACING.sm,
-    alignItems: 'center',
-  },
-  primaryText: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.white,
-    fontWeight: '600',
   },
 });

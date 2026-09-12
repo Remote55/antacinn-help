@@ -11,11 +11,14 @@
  */
 
 import React from 'react';
-import { Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Card from './Card';
+import Icon from './Icon';
+import Button from './Button';
 import EmergencyButton from './EmergencyButton';
 import { DEFAULT_EMERGENCY } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
 export default class ErrorBoundary extends React.Component {
   state = { error: null };
@@ -36,18 +39,20 @@ export default class ErrorBoundary extends React.Component {
     return (
       <SafeAreaView style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.icon}>⚠️</Text>
-          <Text style={styles.title}>ขออภัย แอปแสดงหน้านี้ไม่ได้</Text>
-          <Text style={styles.body}>กด "ลองใหม่" เพื่อกลับไปหน้าแรก ถ้ายังไม่หาย ให้ปิดแล้วเปิดแอปใหม่</Text>
+          <Card style={styles.card}>
+            <View style={styles.iconCircle}>
+              <Icon name="warning-outline" size={32} color={COLORS.caution} />
+            </View>
+            <Text style={styles.title}>ขออภัย แอปแสดงหน้านี้ไม่ได้</Text>
+            <Text style={styles.body}>กด "ลองใหม่" เพื่อกลับไปหน้าแรก ถ้ายังไม่หาย ให้ปิดแล้วเปิดแอปใหม่</Text>
 
-          <Pressable style={styles.retryButton} onPress={this.handleRetry}>
-            <Text style={styles.retryText}>ลองใหม่</Text>
-          </Pressable>
+            <Button title="ลองใหม่" icon="refresh" size="lg" onPress={this.handleRetry} />
 
-          <Text style={styles.body}>ถ้าอยู่ในเหตุฉุกเฉิน โทรได้ทันที</Text>
-          <EmergencyButton label={DEFAULT_EMERGENCY.label} tel={DEFAULT_EMERGENCY.tel} />
+            <Text style={styles.body}>ถ้าอยู่ในเหตุฉุกเฉิน โทรได้ทันที</Text>
+            <EmergencyButton label={DEFAULT_EMERGENCY.label} tel={DEFAULT_EMERGENCY.tel} />
 
-          <Text style={styles.detail}>รายละเอียดสำหรับผู้พัฒนา: {String((error && error.message) || error)}</Text>
+            <Text style={styles.detail}>รายละเอียดสำหรับผู้พัฒนา: {String((error && error.message) || error)}</Text>
+          </Card>
         </ScrollView>
       </SafeAreaView>
     );
@@ -57,41 +62,41 @@ export default class ErrorBoundary extends React.Component {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.page,
   },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: SPACING.md,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
     padding: SPACING.lg,
     gap: SPACING.md,
   },
-  icon: {
-    fontSize: 48,
-    textAlign: 'center',
+  iconCircle: {
+    alignSelf: 'center',
+    width: 64,
+    height: 64,
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLORS.warningBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: FONT_SIZES.heading,
-    fontWeight: 'bold',
+    ...TEXT.h1,
     color: COLORS.text,
     textAlign: 'center',
   },
   body: {
-    fontSize: FONT_SIZES.body,
-    color: COLORS.text,
+    ...TEXT.body,
+    color: COLORS.textSecondary,
     textAlign: 'center',
   },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    alignItems: 'center',
-  },
-  retryText: {
-    color: COLORS.white,
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
-  },
   detail: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
-    marginTop: SPACING.md,
   },
 });

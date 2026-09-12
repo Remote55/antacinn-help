@@ -9,16 +9,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { formatRiskLabel } from '../utils/format';
-import { SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { TEXT, SPACING, RADIUS } from '../constants/theme';
 
 export default function RiskBadge({ riskLevel, score, hasStatistics = true, size = 'normal' }) {
   const isLarge = size === 'large';
 
   return (
-    <View
-      style={[styles.badge, { backgroundColor: riskLevel.color }, isLarge && styles.badgeLarge]}
-    >
-      <Text style={[styles.text, { color: riskLevel.textColor }, isLarge && styles.textLarge]}>
+    <View style={[styles.badge, { backgroundColor: riskLevel.color }, isLarge && styles.badgeLarge]}>
+      <Text style={[isLarge ? styles.textLarge : styles.text, { color: riskLevel.textColor }]} numberOfLines={1}>
         {formatRiskLabel(riskLevel, score, hasStatistics)}
       </Text>
     </View>
@@ -28,19 +26,19 @@ export default function RiskBadge({ riskLevel, score, hasStatistics = true, size
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: RADIUS.pill,
   },
   badgeLarge: {
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingVertical: 6,
   },
   text: {
-    fontSize: FONT_SIZES.small,
-    fontWeight: 'bold',
+    ...TEXT.caption,
+    lineHeight: 18,
   },
   textLarge: {
-    fontSize: FONT_SIZES.subtitle,
+    ...TEXT.bodyStrong,
   },
 });

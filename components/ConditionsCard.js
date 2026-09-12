@@ -6,11 +6,13 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import Card from './Card';
+import Icon from './Icon';
 import { classifyWaves, classifyRain } from '../utils/conditions';
 import { formatDistance } from '../utils/format';
 import { CONDITIONS_DISCLAIMER } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
 /** จุดกริดทะเลห่างเกินนี้ บอกผู้ใช้ว่าค่าคลื่นมาจากนอกชายฝั่ง */
 const FAR_GRID_M = 3000;
@@ -26,12 +28,28 @@ const LEVEL_COLORS = {
   heavy: COLORS.danger,
 };
 
+function ConditionRow({ icon, value, color, advice, note }) {
+  return (
+    <View style={styles.row}>
+      <View style={styles.iconTile}>
+        <Icon name={icon} size={20} color={COLORS.primary} />
+      </View>
+      <View style={styles.rowText}>
+        <Text style={[styles.value, { color }]}>{value}</Text>
+        {advice ? <Text style={styles.advice}>{advice}</Text> : null}
+        {note ? <Text style={styles.meta}>{note}</Text> : null}
+      </View>
+    </View>
+  );
+}
+
 export default function ConditionsCard({ waves, rain, isLoading }) {
   if (isLoading) {
     return (
-      <View style={styles.card}>
+      <Card style={styles.loadingCard}>
+        <ActivityIndicator color={COLORS.primary} size="small" />
         <Text style={styles.meta}>กำลังดูสภาพตอนนี้...</Text>
-      </View>
+      </Card>
     );
   }
 
@@ -42,68 +60,77 @@ export default function ConditionsCard({ waves, rain, isLoading }) {
   const time = (waves && waves.time) || (rain && rain.time) || '';
 
   return (
-    <View style={styles.card}>
+    <Card style={styles.card}>
       <Text style={styles.title}>สภาพตอนนี้</Text>
 
       {waveLevel && (
-        <View style={styles.row}>
-          <Text style={[styles.value, { color: LEVEL_COLORS[waveLevel.id] }]}>
-            🌊 คลื่นสูงประมาณ {waves.heightM.toFixed(1)} ม. · {waveLevel.label}
-          </Text>
-          <Text style={styles.advice}>{waveLevel.advice}</Text>
-          {waves.gridDistanceM > FAR_GRID_M && (
-            <Text style={styles.meta}>
-              ค่าจากแบบจำลองทะเลนอกชายฝั่ง ห่างจุดนี้ประมาณ {formatDistance(waves.gridDistanceM)}
-            </Text>
-          )}
-        </View>
+        <ConditionRow
+          icon="water-outline"
+          value={`คลื่นสูงประมาณ ${waves.heightM.toFixed(1)} ม. · ${waveLevel.label}`}
+          color={LEVEL_COLORS[waveLevel.id]}
+          advice={waveLevel.advice}
+          note={
+            waves.gridDistanceM > FAR_GRID_M
+              ? `ค่าจากแบบจำลองทะเลนอกชายฝั่ง ห่างจุดนี้ประมาณ ${formatDistance(waves.gridDistanceM)}`
+              : null
+          }
+        />
       )}
 
       {rainLevel && (
-        <View style={styles.row}>
-          <Text style={[styles.value, { color: LEVEL_COLORS[rainLevel.id] }]}>
-            🌧️ ฝน {rain.mmPerHour} มม./ชม. · {rainLevel.label}
-          </Text>
-          {rainLevel.advice && <Text style={styles.advice}>{rainLevel.advice}</Text>}
-        </View>
+        <ConditionRow
+          icon="rainy-outline"
+          value={`ฝน ${rain.mmPerHour} มม./ชม. · ${rainLevel.label}`}
+          color={LEVEL_COLORS[rainLevel.id]}
+          advice={rainLevel.advice}
+        />
       )}
 
       <Text style={styles.meta}>
         {CONDITIONS_DISCLAIMER} · ที่มา Open-Meteo{time ? ` เวลา ${time.slice(11, 16)} น.` : ''}
       </Text>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    marginVertical: SPACING.sm,
+    gap: 12,
+  },
+  loadingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
   },
   title: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    ...TEXT.h3,
     color: COLORS.text,
   },
   row: {
-    gap: SPACING.xs,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  iconTile: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowText: {
+    flex: 1,
+    gap: 2,
   },
   value: {
-    fontSize: FONT_SIZES.body,
-    fontWeight: '600',
+    ...TEXT.bodyStrong,
   },
   advice: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.text,
   },
   meta: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
     color: COLORS.textMuted,
-    lineHeight: 18,
   },
 });

@@ -11,19 +11,27 @@
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Icon from './Icon';
 import { formatDistance, formatRiskLabel } from '../utils/format';
-import { SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { TEXT, SPACING, RADIUS, SHADOWS } from '../constants/theme';
 
-export default function TripAlertCard({ point, liveDistanceM, onPress, onDismiss }) {
+export default function TripAlertCard({ point, liveDistanceM, onPress, onDismiss, style }) {
   const textColor = { color: point.riskLevel.textColor };
 
   return (
-    <Pressable style={[styles.card, { backgroundColor: point.riskLevel.color }]} onPress={onPress}>
+    <Pressable
+      style={[styles.card, { backgroundColor: point.riskLevel.color }, style]}
+      onPress={onPress}
+      accessibilityRole="alert"
+    >
       <View style={styles.header}>
-        <Text style={[styles.title, textColor]}>⚠️ ระวัง!</Text>
+        <View style={styles.titleRow}>
+          <Icon name="warning" size={22} color={point.riskLevel.textColor} />
+          <Text style={[styles.title, textColor]}>ระวัง!</Text>
+        </View>
         <Text style={[styles.distance, textColor]}>อีก {formatDistance(liveDistanceM)}</Text>
-        <Pressable onPress={onDismiss} hitSlop={12} accessibilityLabel="ปิดการเตือน">
-          <Text style={[styles.close, textColor]}>✕</Text>
+        <Pressable onPress={onDismiss} hitSlop={12} accessibilityRole="button" accessibilityLabel="ปิดการเตือน">
+          <Icon name="close" size={24} color={point.riskLevel.textColor} />
         </Pressable>
       </View>
       <Text style={[styles.name, textColor]}>{point.name}</Text>
@@ -37,36 +45,36 @@ export default function TripAlertCard({ point, liveDistanceM, onPress, onDismiss
 
 const styles = StyleSheet.create({
   card: {
-    margin: SPACING.md,
-    marginBottom: 0,
     padding: SPACING.md,
-    borderRadius: RADIUS.md,
+    borderRadius: RADIUS.lg,
     gap: SPACING.xs,
+    cursor: 'pointer',
+    ...SHADOWS.raised,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
   },
   title: {
-    fontSize: FONT_SIZES.subtitle,
-    fontWeight: 'bold',
+    ...TEXT.h3,
   },
   distance: {
-    fontSize: FONT_SIZES.alert,
-    fontWeight: 'bold',
-  },
-  close: {
-    fontSize: FONT_SIZES.title,
+    ...TEXT.alert,
   },
   name: {
-    fontSize: FONT_SIZES.title,
-    fontWeight: '600',
+    ...TEXT.h2,
   },
   meta: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
   },
   hint: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.small,
   },
 });

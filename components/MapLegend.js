@@ -9,11 +9,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { RISK_LEVELS } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS, SHADOWS } from '../constants/theme';
 
-export default function MapLegend() {
+export default function MapLegend({ style }) {
   return (
-    <View style={styles.legend}>
+    <View style={[styles.legend, style]}>
       <View style={styles.row}>
         {RISK_LEVELS.map((level) => (
           <View key={level.id} style={styles.item}>
@@ -37,23 +37,23 @@ const styles = StyleSheet.create({
     bottom: SPACING.lg,
     maxWidth: '75%',
     gap: SPACING.xs,
-    padding: SPACING.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.card,
+    ...SHADOWS.raised,
     pointerEvents: 'none',
   },
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: SPACING.sm,
+    columnGap: 12,
     rowGap: SPACING.xs,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: 6,
   },
   dot: {
     width: 14,
@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 2,
     borderColor: COLORS.white,
+    boxShadow: '0 0 0 1px rgba(16, 24, 40, 0.15)',
   },
   // พื้นเทาเป็นกลาง เพราะหมุดทางการมีได้ทุกสี จุดที่ต้องสังเกตคือขอบ
   officialDot: {
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   label: {
-    fontSize: FONT_SIZES.small,
+    ...TEXT.caption,
     color: COLORS.text,
   },
 });

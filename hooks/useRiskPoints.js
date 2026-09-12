@@ -51,9 +51,9 @@ export function useRiskPoints(options = {}) {
     return allPoints.filter((point) => typeFilter.includes(point.type));
   }, [allPoints, typeFilter]);
 
-  /** จุดที่เสี่ยงที่สุดตอนนี้ ใช้แสดงในหน้าแรก */
+  /** จุดที่เสี่ยงที่สุดตอนนี้ ใช้แสดงในหน้าแรก (6 จุด เต็มตาราง 3 คอลัมน์ 2 แถวบนจอกว้างพอดี) */
   const topRiskPoints = useMemo(() => {
-    return [...allPoints].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
+    return [...allPoints].sort((a, b) => b.riskScore - a.riskScore).slice(0, 6);
   }, [allPoints]);
 
   /** ค้นหาตามชื่อ ประเภทอันตราย และอำเภอ เรียงตามความเกี่ยวข้อง (ตรรกะอยู่ใน utils/search.js) */

@@ -7,13 +7,14 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Icon from './Icon';
 import { DISCLAIMER_TEXT, UNVERIFIED_TEXT, VERIFIED_TEXT } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
-const TEXTS = {
-  general: DISCLAIMER_TEXT,
-  unverified: UNVERIFIED_TEXT,
-  verified: '✓ ' + VERIFIED_TEXT,
+const VARIANTS = {
+  general: { text: DISCLAIMER_TEXT, icon: 'information-circle-outline', iconColor: COLORS.caution, box: 'warning' },
+  unverified: { text: UNVERIFIED_TEXT, icon: 'alert-circle-outline', iconColor: COLORS.caution, box: 'warning' },
+  verified: { text: VERIFIED_TEXT, icon: 'shield-checkmark-outline', iconColor: COLORS.primary, box: 'verified' },
 };
 
 /**
@@ -21,30 +22,40 @@ const TEXTS = {
  *                'unverified' = เตือนว่าจุดนี้ยังไม่ยืนยันแหล่งที่มา
  *                'verified'   = บอกว่าจุดนี้มาจากเอกสารทางการ (สีฟ้า ไม่ใช่สีเตือน)
  */
-export default function Disclaimer({ variant = 'general' }) {
+export default function Disclaimer({ variant = 'general', style }) {
+  const config = VARIANTS[variant] || VARIANTS.general;
+
   return (
-    <View style={[styles.box, variant === 'verified' && styles.verifiedBox]}>
-      <Text style={styles.text}>{TEXTS[variant] || DISCLAIMER_TEXT}</Text>
+    <View style={[styles.box, config.box === 'verified' ? styles.verifiedBox : styles.warningBox, style]}>
+      <Icon name={config.icon} size={18} color={config.iconColor} style={styles.icon} />
+      <Text style={styles.text}>{config.text}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   box: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    padding: 12,
+  },
+  warningBox: {
     backgroundColor: COLORS.warningBackground,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.warningBorder,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
-    marginVertical: SPACING.sm,
+    borderColor: COLORS.warningBorder,
   },
   verifiedBox: {
     backgroundColor: COLORS.verifiedBackground,
-    borderLeftColor: COLORS.primary,
+    borderColor: '#BBDEFB',
+  },
+  icon: {
+    marginTop: 1,
   },
   text: {
-    fontSize: FONT_SIZES.small,
+    flex: 1,
+    ...TEXT.small,
     color: COLORS.text,
-    lineHeight: 20,
   },
 });

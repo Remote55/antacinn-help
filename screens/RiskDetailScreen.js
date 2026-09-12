@@ -3,23 +3,32 @@
  *
  * ผู้ใช้อยู่หน้างานจริงแล้ว ต้องการรู้ว่า "ต้องทำตัวยังไงเมื่ออยู่ตรงนั้น"
  * จึงเน้นข้อเสนอแนะเชิงปฏิบัติ และปุ่มโทรฉุกเฉินที่กดได้ทันที
+ *
+ * จอกว้าง: การ์ดหัวเรื่อง แล้วแบ่งสองคอลัมน์ (สถิติ ช่วงเวลา คำแนะนำ | โทรฉุกเฉิน สภาพตอนนี้ แหล่งอ้างอิง)
+ * มือถือ: การ์ดเรียงลงมา
  */
 
 import React from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import RiskBadge from '../components/RiskBadge';
 import VerificationBadge from '../components/VerificationBadge';
 import Disclaimer from '../components/Disclaimer';
 import EmergencyButton from '../components/EmergencyButton';
 import ConditionsCard from '../components/ConditionsCard';
+import Container from '../components/Container';
+import BackLink from '../components/BackLink';
+import Card from '../components/Card';
+import Button from '../components/Button';
+import Icon from '../components/Icon';
 import { useRiskPoints } from '../hooks/useRiskPoints';
 import { useFavorites } from '../hooks/useFavorites';
 import { useLiveConditions } from '../hooks/useLiveConditions';
+import { useLayout } from '../hooks/useLayout';
 import { summarizeIncidents, describeHours } from '../utils/format';
 import { conditionsNeededFor } from '../utils/conditions';
-import { SEVERITY_LABELS, HAZARD_TYPES } from '../constants/config';
-import { COLORS, SPACING, FONT_SIZES, RADIUS } from '../constants/theme';
+import { hazardFor } from '../utils/hazards';
+import { SEVERITY_LABELS } from '../constants/config';
+import { COLORS, TEXT, SPACING, RADIUS } from '../constants/theme';
 
 const THAI_MONTHS_SHORT = [
   'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
@@ -33,7 +42,18 @@ function describeMonths(peakMonths) {
   return peakMonths.map((m) => THAI_MONTHS_SHORT[m - 1]).join(' · ');
 }
 
+/** หัวข้อของการ์ดแต่ละใบ */
+function CardTitle({ icon, title }) {
+  return (
+    <View style={styles.cardTitleRow}>
+      <Icon name={icon} size={20} color={COLORS.primary} />
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+  );
+}
+
 export default function RiskDetailScreen({ route }) {
+  const { isWide } = useLayout();
   const { pointId } = route.params;
   const { findPointById } = useRiskPoints();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -45,221 +65,325 @@ export default function RiskDetailScreen({ route }) {
   // กันกรณีหาจุดไม่เจอ เช่น ผู้ใช้ลบจุดที่บันทึกเองไปแล้วแต่ยังเปิดหน้านี้ค้างอยู่
   if (!point) {
     return (
-      <SafeAreaView style={styles.screen}>
-        <View style={styles.content}>
-          <Text style={styles.notFound}>ไม่พบข้อมูลจุดเสี่ยงนี้</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.screen}>
+        <Container style={styles.content}>
+          {isWide && <BackLink />}
+          <Card style={styles.notFoundCard}>
+            <Icon name="help-circle-outline" size={32} color={COLORS.textMuted} />
+            <Text style={styles.notFound}>ไม่พบข้อมูลจุดเสี่ยงนี้</Text>
+          </Card>
+        </Container>
+      </View>
     );
   }
 
-  const hazard = HAZARD_TYPES.find((h) => h.id === point.type) || { icon: '📍', label: 'ไม่ระบุ' };
+  const hazard = hazardFor(point.type);
   const favorite = isFavorite(point.id);
 
-  return (
-    <SafeAreaView style={styles.screen} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.name}>
-          {hazard.icon} {point.name}
-        </Text>
-        <Text style={styles.meta}>
-          {point.district} · {hazard.label}
-        </Text>
-
-        <View style={styles.badgeRow}>
-          <RiskBadge
-            riskLevel={point.riskLevel}
-            score={point.riskScore}
-            hasStatistics={point.hasStatistics}
-            size="large"
-          />
-          <VerificationBadge verified={point.verified} />
+  const headerCard = (
+    <Card style={styles.headerCard}>
+      <View style={styles.headerTop}>
+        <View style={[styles.hazardTile, { backgroundColor: point.riskLevel.color }]}>
+          <Icon name={hazard.icon} size={28} color={point.riskLevel.textColor} />
         </View>
-
-        {/* รายการโปรด (เอกสารตาราง 6.1) กดซ้ำเพื่อเอาออก */}
-        <Pressable
-          style={[styles.favoriteButton, favorite && styles.favoriteButtonActive]}
-          onPress={() => toggleFavorite(point.id)}
-          accessibilityRole="button"
-          accessibilityLabel={favorite ? 'เอาออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด'}
-        >
-          <Text style={[styles.favoriteText, favorite && styles.favoriteTextActive]}>
-            {favorite ? '★ อยู่ในรายการโปรดแล้ว' : '☆ บันทึกเป็นรายการโปรด'}
+        <View style={styles.headerText}>
+          <Text style={styles.name} accessibilityRole="header">
+            {point.name}
           </Text>
-        </Pressable>
+          <Text style={styles.meta}>
+            {point.district} · {hazard.label}
+          </Text>
+        </View>
+      </View>
 
-        {/* บอกก่อนที่ผู้ใช้จะอ่านสถิติ ว่าข้อมูลจุดนี้เชื่อถือได้แค่ไหน */}
-        <Disclaimer variant={point.verified ? 'verified' : 'unverified'} />
+      <View style={styles.badgeRow}>
+        <RiskBadge riskLevel={point.riskLevel} score={point.riskScore} hasStatistics={point.hasStatistics} size="large" />
+        <VerificationBadge verified={point.verified} />
+      </View>
 
-        <ConditionsCard waves={conditions.waves} rain={conditions.rain} isLoading={conditions.isLoading} />
+      {/* รายการโปรด (เอกสารตาราง 6.1) กดซ้ำเพื่อเอาออก */}
+      <Button
+        variant={favorite ? 'primary' : 'secondary'}
+        icon={favorite ? 'star' : 'star-outline'}
+        title={favorite ? 'อยู่ในรายการโปรดแล้ว' : 'บันทึกเป็นรายการโปรด'}
+        accessibilityLabel={favorite ? 'เอาออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด'}
+        onPress={() => toggleFavorite(point.id)}
+        style={styles.favoriteButton}
+      />
 
-        <Text style={styles.sectionTitle}>สถิติย้อนหลัง</Text>
-        <Text style={styles.summary}>{summarizeIncidents(point.incidents)}</Text>
+      {/* บอกก่อนที่ผู้ใช้จะอ่านสถิติ ว่าข้อมูลจุดนี้เชื่อถือได้แค่ไหน */}
+      <Disclaimer variant={point.verified ? 'verified' : 'unverified'} />
+    </Card>
+  );
 
-        {point.incidents.length > 0 && (
-          <View style={styles.table}>
-            {point.incidents.map((incident, index) => (
-              <View key={index} style={styles.tableRow}>
-                <Text style={styles.tableYear}>พ.ศ. {incident.year}</Text>
-                <Text style={styles.tableSeverity}>{SEVERITY_LABELS[incident.severity]}</Text>
-                <Text style={styles.tableCount}>{incident.count}</Text>
-              </View>
-            ))}
+  const statsCard = (
+    <Card style={styles.card}>
+      <CardTitle icon="stats-chart-outline" title="สถิติย้อนหลัง" />
+      <Text style={styles.summary}>{summarizeIncidents(point.incidents)}</Text>
+      {point.incidents.length > 0 && (
+        <View style={styles.table}>
+          <View style={[styles.tableRow, styles.tableHead]}>
+            <Text style={[styles.tableYear, styles.tableHeadText]}>ปี</Text>
+            <Text style={[styles.tableSeverity, styles.tableHeadText]}>ความรุนแรง</Text>
+            <Text style={[styles.tableCount, styles.tableHeadText]}>จำนวน</Text>
           </View>
-        )}
-
-        <Text style={styles.sectionTitle}>ช่วงที่ต้องระวังเป็นพิเศษ</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>เดือน</Text>
-          <Text style={styles.infoValue}>{describeMonths(point.peakMonths)}</Text>
+          {point.incidents.map((incident, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={styles.tableYear}>พ.ศ. {incident.year}</Text>
+              <Text style={styles.tableSeverity}>{SEVERITY_LABELS[incident.severity]}</Text>
+              <Text style={styles.tableCount}>{incident.count}</Text>
+            </View>
+          ))}
         </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>ช่วงเวลา</Text>
-          <Text style={styles.infoValue}>{describeHours(point.peakHours)}</Text>
-        </View>
+      )}
+    </Card>
+  );
 
-        <Text style={styles.sectionTitle}>สิ่งที่ควรทำ</Text>
-        {point.advice && point.advice.length > 0 ? (
-          point.advice.map((line, index) => (
-            <Text key={index} style={styles.adviceItem}>
-              • {line}
-            </Text>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>ยังไม่มีคำแนะนำสำหรับจุดนี้</Text>
-        )}
+  const peakCard = (
+    <Card style={styles.card}>
+      <CardTitle icon="time-outline" title="ช่วงที่ต้องระวังเป็นพิเศษ" />
+      <View style={styles.infoRow}>
+        <Icon name="calendar-outline" size={18} color={COLORS.textMuted} />
+        <Text style={styles.infoLabel}>เดือน</Text>
+        <Text style={styles.infoValue}>{describeMonths(point.peakMonths)}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Icon name="alarm-outline" size={18} color={COLORS.textMuted} />
+        <Text style={styles.infoLabel}>ช่วงเวลา</Text>
+        <Text style={styles.infoValue}>{describeHours(point.peakHours)}</Text>
+      </View>
+    </Card>
+  );
 
-        <Text style={styles.sectionTitle}>แหล่งอ้างอิง</Text>
-        <Text style={styles.sourceText}>{point.source}</Text>
+  const adviceCard = (
+    <Card style={styles.card}>
+      <CardTitle icon="checkmark-done-outline" title="สิ่งที่ควรทำ" />
+      {point.advice && point.advice.length > 0 ? (
+        point.advice.map((line, index) => (
+          <View key={index} style={styles.adviceRow}>
+            <Icon name="checkmark-circle" size={18} color={COLORS.primary} style={styles.adviceIcon} />
+            <Text style={styles.adviceText}>{line}</Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.emptyText}>ยังไม่มีคำแนะนำสำหรับจุดนี้</Text>
+      )}
+    </Card>
+  );
 
-        <Text style={styles.sectionTitle}>ติดต่อฉุกเฉิน</Text>
-        {point.emergency.map((contact, index) => (
-          <EmergencyButton key={index} label={contact.label} tel={contact.tel} />
-        ))}
+  const emergencyCard = (
+    <Card style={styles.card}>
+      <CardTitle icon="call-outline" title="ติดต่อฉุกเฉิน" />
+      {point.emergency.map((contact, index) => (
+        <EmergencyButton key={index} label={contact.label} tel={contact.tel} />
+      ))}
+    </Card>
+  );
 
-        <Disclaimer />
+  const conditionsCard = (
+    <ConditionsCard waves={conditions.waves} rain={conditions.rain} isLoading={conditions.isLoading} />
+  );
+
+  const sourceCard = (
+    <Card style={styles.card}>
+      <CardTitle icon="document-text-outline" title="แหล่งอ้างอิง" />
+      <Text style={styles.sourceText}>{point.source}</Text>
+    </Card>
+  );
+
+  return (
+    <View style={styles.screen}>
+      <ScrollView>
+        <Container style={styles.content}>
+          {isWide && <BackLink />}
+          {headerCard}
+
+          {isWide ? (
+            <View style={styles.columns}>
+              <View style={styles.mainColumn}>
+                {statsCard}
+                {peakCard}
+                {adviceCard}
+              </View>
+              <View style={styles.sideColumn}>
+                {emergencyCard}
+                {conditionsCard}
+                {sourceCard}
+              </View>
+            </View>
+          ) : (
+            <>
+              {conditionsCard}
+              {adviceCard}
+              {emergencyCard}
+              {statsCard}
+              {peakCard}
+              {sourceCard}
+            </>
+          )}
+
+          <Disclaimer />
+        </Container>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.page,
   },
   content: {
-    padding: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingVertical: SPACING.lg,
+    gap: 12,
+  },
+  headerCard: {
+    padding: SPACING.lg,
+    gap: SPACING.md,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.md,
+  },
+  hazardTile: {
+    width: 56,
+    height: 56,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    flex: 1,
+    gap: 2,
   },
   name: {
-    fontSize: FONT_SIZES.heading,
-    fontWeight: 'bold',
+    ...TEXT.h1,
     color: COLORS.text,
   },
   meta: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.textMuted,
-    marginTop: SPACING.xs,
   },
   badgeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     gap: SPACING.sm,
-    marginVertical: SPACING.md,
   },
   favoriteButton: {
     alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    marginBottom: SPACING.sm,
   },
-  favoriteButtonActive: {
-    backgroundColor: COLORS.primary,
+  columns: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
   },
-  favoriteText: {
-    fontSize: FONT_SIZES.body,
-    color: COLORS.primary,
-    fontWeight: '600',
+  mainColumn: {
+    flex: 3,
+    gap: 12,
   },
-  favoriteTextActive: {
-    color: COLORS.white,
+  sideColumn: {
+    flex: 2,
+    gap: 12,
   },
-  sectionTitle: {
-    fontSize: FONT_SIZES.title,
-    fontWeight: 'bold',
+  card: {
+    gap: 12,
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  cardTitle: {
+    ...TEXT.h3,
     color: COLORS.text,
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.sm,
   },
   summary: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.bodyStrong,
     color: COLORS.text,
   },
   table: {
-    marginTop: SPACING.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    overflow: 'hidden',
+  },
+  tableHead: {
+    backgroundColor: COLORS.page,
+  },
+  tableHeadText: {
+    ...TEXT.caption,
+    color: COLORS.textMuted,
   },
   tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: COLORS.divider,
   },
   tableYear: {
     flex: 1,
-    fontSize: FONT_SIZES.body,
-    color: COLORS.textMuted,
+    ...TEXT.body,
+    color: COLORS.textSecondary,
   },
   tableSeverity: {
     flex: 2,
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.text,
   },
   tableCount: {
-    fontSize: FONT_SIZES.body,
-    fontWeight: 'bold',
+    minWidth: 48,
+    textAlign: 'right',
+    ...TEXT.bodyStrong,
     color: COLORS.text,
   },
   infoRow: {
     flexDirection: 'row',
-    paddingVertical: SPACING.xs,
+    alignItems: 'center',
+    gap: SPACING.sm,
   },
   infoLabel: {
-    width: 90,
-    fontSize: FONT_SIZES.body,
+    width: 70,
+    ...TEXT.body,
     color: COLORS.textMuted,
   },
   infoValue: {
     flex: 1,
-    fontSize: FONT_SIZES.body,
+    ...TEXT.bodyStrong,
     color: COLORS.text,
   },
-  adviceItem: {
-    fontSize: FONT_SIZES.body,
+  adviceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+  },
+  adviceIcon: {
+    marginTop: 3,
+  },
+  adviceText: {
+    flex: 1,
+    ...TEXT.body,
     color: COLORS.text,
-    lineHeight: 24,
-    marginBottom: SPACING.xs,
   },
   sourceText: {
-    fontSize: FONT_SIZES.small,
-    color: COLORS.textMuted,
-    lineHeight: 20,
+    ...TEXT.small,
+    color: COLORS.textSecondary,
   },
   emptyText: {
-    fontSize: FONT_SIZES.body,
+    ...TEXT.body,
     color: COLORS.textMuted,
   },
+  notFoundCard: {
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.xl,
+  },
   notFound: {
-    fontSize: FONT_SIZES.subtitle,
+    ...TEXT.h3,
     color: COLORS.textMuted,
-    textAlign: 'center',
-    marginTop: SPACING.xl,
   },
 });

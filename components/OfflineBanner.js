@@ -6,29 +6,39 @@
  */
 
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Icon from './Icon';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
-import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
+import { COLORS, TEXT, SPACING } from '../constants/theme';
 
 export default function OfflineBanner() {
   const isOnline = useOnlineStatus();
   if (isOnline) return null;
 
   return (
-    <Text style={styles.banner} accessibilityRole="alert">
-      ออฟไลน์อยู่ · ดูจุดเสี่ยงและคำแนะนำได้ตามปกติ แต่แผนที่พื้นหลัง เส้นทางจริง และสภาพอากาศต้องใช้อินเทอร์เน็ต
-    </Text>
+    <View style={styles.banner} accessibilityRole="alert">
+      <Icon name="cloud-offline-outline" size={18} color={COLORS.caution} />
+      <Text style={styles.text}>
+        ออฟไลน์อยู่ · ดูจุดเสี่ยงและคำแนะนำได้ตามปกติ แต่แผนที่พื้นหลัง เส้นทางจริง และสภาพอากาศต้องใช้อินเทอร์เน็ต
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     backgroundColor: COLORS.warningBackground,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.warningBorder,
-    color: COLORS.text,
-    fontSize: FONT_SIZES.small,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
+  },
+  text: {
+    flex: 1,
+    ...TEXT.small,
+    color: COLORS.text,
   },
 });
