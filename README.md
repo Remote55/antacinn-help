@@ -121,7 +121,7 @@
 | ช่องทาง | ลิงก์ |
 |---|---|
 | เว็บจริง (ใครก็เปิดได้ อัปเดตเองทุกครั้งที่ push) | https://remote55.github.io/antacinn-help/ |
-| Expo Snack (ส่งงานรายวิชา) | https://snack.expo.dev/R1d2Tn1__U_PsiyTtB-_F |
+| Expo Snack (ส่งงานรายวิชา) | https://snack.expo.dev/Rme5zErJjbrSxFqhv0HOR |
 | โค้ดทั้งหมด | https://github.com/Remote55/antacinn-help |
 
 ### บนมือถือ (แนะนำ — แผนที่สมบูรณ์ที่สุด)
@@ -141,6 +141,8 @@ npm run snack:upload
 ```
 พิมพ์ลิงก์ Snack ใหม่ออกมา (ทุกครั้งได้ลิงก์ใหม่ เอาไปแทนลิงก์ในตารางข้างบน) ใช้ `-- --check` เพื่อตรวจอย่างเดียวไม่บันทึก
 หมายเหตุ: `@react-navigation/native-stack` ล็อกไว้ที่ 7.18.8 เพราะ Snack build เวอร์ชัน 7.18.9 ขึ้นไปไม่ได้ (ตรวจเมื่อ 2026-09-11) ห้ามอัปเดตก่อนตรวจด้วย `--check`
+สคริปต์เปลี่ยนบรรทัด import ของฟอนต์และไอคอนเป็นแบบชื่อแพ็กเกจให้เองตอนอัปโหลด เพราะ Snack หา path ย่อย
+(`.../400Regular`, `@expo/vector-icons/Ionicons`) ไม่เจอ ส่วนในเว็บจริงต้องใช้ path ย่อย ไม่อย่างนั้น JavaScript โตขึ้น ~430 KB
 
 ### รันบนเครื่องตัวเอง
 ```bash

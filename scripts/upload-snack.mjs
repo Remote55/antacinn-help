@@ -21,8 +21,26 @@ const APP_ROOT_FILES = ['App.js', 'app.json'];
 /** Snack มีให้ในตัวอยู่แล้ว ไม่ต้องประกาศเป็น dependency */
 const PROVIDED_BY_SNACK = new Set(['expo', 'react', 'react-dom', 'react-native', 'react-native-web']);
 
+/**
+ * Snack หา path ย่อยของแพ็กเกจเหล่านี้ไม่เจอ (ฟอนต์พังตอนรัน ไอคอนขึ้นแถบแดงในหน้าแก้โค้ด)
+ * แต่เว็บจริงต้องใช้ path ย่อย ถ้า import จากชื่อแพ็กเกจ JavaScript ของเว็บจะโตขึ้น ~430 KB
+ * (ติดฟอนต์ทุกน้ำหนักและไอคอนทุกชุดมา ตรวจแล้ว 1.12 MB → 1.55 MB)
+ * ตอนอัปโหลดจึงเปลี่ยนเฉพาะบรรทัด import เหล่านี้เป็นแบบชื่อแพ็กเกจ โค้ดส่วนอื่นเหมือนใน repo ทุกตัวอักษร
+ */
+const SNACK_IMPORT_REWRITES = [
+  // from '@expo-google-fonts/ibm-plex-sans-thai/400Regular' → from '@expo-google-fonts/ibm-plex-sans-thai'
+  [/from '(@expo-google-fonts\/[a-z0-9-]+)\/[0-9A-Za-z]+'/g, "from '$1'"],
+  // import Ionicons from '@expo/vector-icons/Ionicons' → import { Ionicons } from '@expo/vector-icons'
+  [/import Ionicons from '@expo\/vector-icons\/Ionicons'/g, "import { Ionicons } from '@expo/vector-icons'"],
+];
+
+function adaptForSnack(contents) {
+  return SNACK_IMPORT_REWRITES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), contents);
+}
+
 function readCode(relative) {
-  return { type: 'CODE', contents: fs.readFileSync(path.join(ROOT, relative), 'utf8') };
+  const contents = fs.readFileSync(path.join(ROOT, relative), 'utf8');
+  return { type: 'CODE', contents: relative.endsWith('.js') ? adaptForSnack(contents) : contents };
 }
 
 function collectFiles() {

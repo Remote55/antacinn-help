@@ -4,6 +4,7 @@
  *
  * import จาก '@expo/vector-icons/Ionicons' เท่านั้น ห้าม import จาก '@expo/vector-icons' เฉย ๆ
  * เพราะแบบนั้นจะรวมฟอนต์ไอคอนทุกชุด (หลาย MB) เข้ามาในเว็บ
+ * (ตัวตรวจโค้ดของ Snack ไม่รู้จัก path ย่อยนี้ scripts/upload-snack.mjs จึงเปลี่ยนให้ตอนอัปโหลด)
  * ไอคอนเป็นของตกแต่ง (aria-hidden) ข้อความข้าง ๆ หรือ accessibilityLabel ของปุ่มเป็นตัวบอกความหมาย
  */
 

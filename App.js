@@ -20,6 +20,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons';
 // import ทีละน้ำหนัก ถ้า import จากชื่อแพ็กเกจเฉย ๆ จะติดฟอนต์ทั้ง 7 น้ำหนัก (ไฟล์ละ ~110 KB) มาในเว็บ
+// (Snack หา path ย่อยนี้ไม่เจอ scripts/upload-snack.mjs จึงเปลี่ยนเป็นชื่อแพ็กเกจให้ตอนอัปโหลด)
 import { IBMPlexSansThai_400Regular } from '@expo-google-fonts/ibm-plex-sans-thai/400Regular';
 import { IBMPlexSansThai_600SemiBold } from '@expo-google-fonts/ibm-plex-sans-thai/600SemiBold';
 import { IBMPlexSansThai_700Bold } from '@expo-google-fonts/ibm-plex-sans-thai/700Bold';
